@@ -5,9 +5,6 @@ var webpack = require('webpack');
 module.exports = {
     context : resolve(__dirname, 'src'),
     entry : [
-        'react-hot-loader/patch',
-        'webpack-dev-server/client?http://localhost:8080',
-        'webpack/hot/only-dev-server',
         'babel-polyfill',
         'whatwg-fetch',
         'react',
@@ -16,12 +13,6 @@ module.exports = {
     output : {
         path: resolve(__dirname, 'public'),
         filename: 'bundle.js',
-        publicPath: '/'
-    },
-    devtool: 'inline-source-map',
-    devServer: {
-        hot: true,
-        contentBase: resolve(__dirname, 'public'),
         publicPath: '/'
     },
     module: {
@@ -43,12 +34,5 @@ module.exports = {
                 loader: 'url-loader?limit=100000'
             }
         ]
-    },
-    plugins: [
-        new webpack.HotModuleReplacementPlugin(),
-        // enable HMR globally
-
-        new webpack.NamedModulesPlugin(),
-        // prints more readable module names in the browser console on HMR updates
-    ],
+    }
 };

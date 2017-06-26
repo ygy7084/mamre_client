@@ -1,3 +1,5 @@
-/**
- * Created by 1nept on 2017-05-12.
- */
+import API_test from './API_test';
+
+export {
+    API_test
+};
