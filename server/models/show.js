@@ -9,10 +9,10 @@ import mongoose from 'mongoose';
 const Schema = mongoose.Schema;
 const Show = new Schema({
     name : String,
-    schedule : {
+    schedule : [{
         date : Date,
         url : String
-    }
+    }]
 });
 
 Show.index({name:1}, {unique:true});

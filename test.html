@@ -1,0 +1,620 @@
+
+
+<html>
+<head>
+<title></title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<link rel="stylesheet" type="text/css" href="http://ticket.interpark.com/Include/css/common.css">
+<script language="javascript">
+	//첫로딩 여부
+	var IsFisrtLoad = true;
+	//초기화
+	function fnInit()
+	{
+		//fnCallPlaySeqUpdate();
+
+//		fnSeatUpdate();
+		fnCallSeatPriceUpdate();
+		window.resizeTo(900, 730);
+//		fnInitBlock();
+	}	
+	//이전화면
+	function fnCancel()
+	{
+//		document.location.href = "null.html";	//좌석	
+//		parent.divSeat.style.visibility = "hidden";
+	}
+	//다시선택
+	function fnRefresh()
+	{
+		ifrmSeatDetail.location.reload();
+		fnInitSeat();
+	}
+	//선택완료
+	function fnSelect()
+	{
+
+		
+	}
+	
+	//좌석 데이타 전달
+	function fnSetSeat()
+	{
+	/*
+		if(frmSeat.PlayDate.value!="")
+			parent.fnSetValPlayDateSeat(frmSeat.PlayDate.value);
+		
+		if(frmSeat.PlaySeq.value!="002")
+			parent.fnSetValPlaySeqSeat(frmSeat.PlaySeq.value);
+				
+		parent.fnClearSeat();
+		for(i=0;i<SeatBuffer.index;i++)
+		{
+			o = SeatBuffer.pop(i);
+			parent.fnSetSeatElement(i, o.SeatGrade, "", 0, "", "", o.SeatGradeName, "", o.BlockNo, o.Floor, o.RowNo, o.SeatNo);
+		}
+
+		//선택완료		
+		parent.fnSetSeat();
+	*/
+	}
+	
+	//선택정보 관리
+	//좌석선택정보 초기화
+	function fnInitSeat()
+	{
+		SeatBuffer.clear();
+		for(i=0; i<GradeBuffer.index; i++)
+			GradeBuffer.Data[i].MyCnt = 0;
+		fnMySeatUpdate();
+	}
+	//등급버퍼 및 좌석 선택 정보 초기화
+	function fnInitGrade()
+	{
+		GradeBuffer.clear();
+		fnInitSeat();
+	}
+	//전체맵좌표보기 기본값 설정
+	function fnFullSeatView()
+	{
+	
+		fnBlockSeatUpdate('', '', "RGN001")
+	}
+	
+</script>
+<script language="javascript" src="inc/Buffer.js"></script>
+<script language="javascript">
+	//BookingSeat
+	function fnHttpRead(url)
+	{
+		ifrmInfo.location.href = url;
+	}
+	
+	//선택된 좌석 표시
+	function fnMySeatUpdate()
+	{
+		//좌석상세정보
+		var str = "";
+		for(i=0;i<SeatBuffer.index; i++)
+		{
+			o = SeatBuffer.pop(i);
+			str = str + "<tr><td width='40%' height='20' valign='middle'>" + o.SeatGradeName + "</td><td valign='middle'>" + o.Floor + " " + o.RowNo + " " + o.SeatNo + "</td></tr>";
+		}
+		
+		var html = "<head><title></title><meta http-equiv='Content-Type content=text/html; charset=euc-kr'><link rel=stylesheet type='text/css' href='http://ticket.interpark.com/Include/css/common.css'><\script language='javascript' src='/booking/inc/block.js'><\/script></head>";
+		html = html + "<body leftmargin='0' topmargin='0' bgcolor='E7EBEB' style='scrollbar-3dlight-color:#FFFFFF;scrollbar-arrow-color:#C3C3C3;scrollbar-track-color:#FFFFFF;scrollbar-darkshadow-color:#FFFFFF;scrollbar-face-color:#FFFFFF;scrollbar-highlight-color:#C3C3C3;scrollbar-shadow-color:#C3C3C3;margin:0;'>";
+		html = html + "<table width='100%' border='0' cellspacing='0' cellpadding='0'>";
+		html = html + str;
+		html = html + "</table>";
+		html = html + "</body></html>";
+		ifrmMySeat.document.open("text/html");
+		ifrmMySeat.document.write(html);
+		ifrmMySeat.document.close();
+		//좌석갯수
+		SelectedSeatCount.innerHTML = SeatBuffer.index;
+		
+		if(SeatBuffer.index > 0)
+			frmSeat.NextButton.src = "http://ticketimage.interpark.com/TicketImage/event/061227/seat_ok_s.gif";
+		else
+			frmSeat.NextButton.src = "http://ticketimage.interpark.com/TicketImage/event/061227/seat_ok_b.gif";
+	}
+	
+	
+	//PlaySeq Collection을 변경한다.
+	function fnCallPlaySeqUpdate()
+	{
+	/*
+		//PlaySeq를 초기화한다.
+		var c = frmSeat.PlaySeq
+		for(i=c.options.length-1;i>-1;i--)
+			c.options[i] = null;
+		//PlaySeq를 조회한다.
+		fnHttpRead("BookingInfo.asp?Flag=PlaySeq&GoodsCode=17007474&PlaceCode=13811094&Tiki=N&PlayDate=" + frmSeat.PlayDate.value + "&OnlyDeliver=&DBDay=&ExpressDelyDay=");
+	*/
+	}
+	
+	//PlaySeq Collection을 추가한다.
+	function fnAddPlaySeq(PlaySeq, PlayTime)
+	{
+	/*
+		var o = document.createElement("option");
+		o.innerText = PlayTime;
+		o.value = PlaySeq;
+		//초기값 설정은 처음 로드시만 적용
+		if(PlaySeq=="002" && IsFisrtLoad)
+		{
+			o.selected = true;
+			IsFirstLoad = false;
+		}
+		frmSeat.PlaySeq.appendChild(o);
+	*/
+	}
+	
+	
+	//등급별 좌석정보 및 일반가격 조회 요청(우측 기본가격 및 잔여석)
+	function fnCallSeatPriceUpdate()
+	{
+		fnInitGrade();
+		
+	
+		fnHttpRead("BookingInfo.asp?Flag=SeatGrade&GoodsCode=17007474&PlaceCode=13811094&PlaySeq=002");
+	
+	
+	}
+	
+	//등급별 좌석정보 및 일반가격 화면 변경(우측 기본가격 및 잔여석)
+	function fnSeatPriceUpdate(str)
+	{
+		html = "<head><title></title><meta http-equiv='Content-Type content=text/html; charset=euc-kr'><link rel=stylesheet type='text/css' href='http://ticket.interpark.com/Include/css/common.css'><\script language='javascript' src='/booking/inc/block.js'><\/script></head>";
+		html = html + "<body leftmargin='0' topmargin='0' bgcolor='E7EBEB' style='scrollbar-3dlight-color:#FFFFFF;scrollbar-arrow-color:#C3C3C3;scrollbar-track-color:#FFFFFF;scrollbar-darkshadow-color:#FFFFFF;scrollbar-face-color:#FFFFFF;scrollbar-highlight-color:#C3C3C3;scrollbar-shadow-color:#C3C3C3;margin:0;'>";
+		html = html + str;
+		//html = html + "<div id='GradeInfo' style='width:100px; height:30px; position:absolute; top:0px; left:0px; z-index:1; visibility:hidden; font-size:9pt; color:#636363; border:CORAL 1px dashed; background-color:#ffffff; padding:2px'></div>"
+		html = html + "</body></html>";
+		ifrmSeatPrice.document.open("text/html");
+		ifrmSeatPrice.document.write(html);
+		ifrmSeatPrice.document.close();
+	}
+	
+	//가격등급 상세조회용(Html 버전에서만 사용, 블럭 리스트 표시)
+	function fnSwapGrade(idx) 
+	{
+		ifrmSeatDetail.location.href = "BookingSeatDetailMap.asp?GoodsCode=17007474&PlaceCode=13811094&TmgsOrNot=D2006&LocOfImage=&Tiki=N&PlaySeq=002"
+		fnInitSeat();
+			
+		var r = ifrmSeatPrice.GradeRow;
+		var o = ifrmSeatPrice.GradeDetail;
+		var e = ifrmSeatPrice.expand;								
+		if(o[idx].style.display == 'none')
+		{
+			if(o[idx].innerHTML == '')
+				fnCallSeatGradeDetailUpdate(idx, o[idx].SeatGrade);			
+			
+			for(i=0;i<r.length;i++)
+				r[i].style.backgroundColor = '';
+				
+			for(i=0; i<o.length; i++)
+				o[i].style.display = 'none';
+			
+			for(i=0;i<e.length;i++)
+				e[i].innerHTML = "<img src='http://ticketimage.interpark.com/TicketImage/event/061227/new_s_arrow_01.gif'>";				
+			
+			r[idx].style.backgroundColor = '#D9DCDC';
+			o[idx].style.display = 'inline';
+			e[idx].innerHTML = "<img src='http://ticketimage.interpark.com/TicketImage/event/061227/new_s_arrow_02.gif'>";
+		}
+		else
+		{
+			o[idx].style.display = 'none';
+			e[idx].innerHTML = "<img src='http://ticketimage.interpark.com/TicketImage/event/061227/new_s_arrow_01.gif'>";		
+		}			
+	}
+	//가격등급 블럭 리스트 정보 조회
+	function fnCallSeatGradeDetailUpdate(idx, s)
+	{
+		//document.writeln("BookingInfo.asp?Flag=SeatGradeBlock&GoodsCode=17007474&PlaceCode=13811094&Tiki=N&PlaySeq=" + frmSeat.PlaySeq.value + "&SeatGrade=" + s + "&SeatGradeIdx=" + idx);
+		fnHttpRead("BookingInfo.asp?Flag=SeatGradeBlock&GoodsCode=17007474&PlaceCode=13811094&Tiki=N&PlaySeq=002" + "&SeatGrade=" + s + "&SeatGradeIdx=" + idx);
+		
+	}
+	//가격등급 블럭 리스트 정보 표시
+	function fnSeatPriceDetailUpdate(idx, str)
+	{		
+		ifrmSeatPrice.GradeDetail[idx].innerHTML = str;
+	}
+	
+	//좌석 블럭 조회
+	function fnBlockSeatUpdate(SeatGrade, SeatGradeName, Block)
+	{	
+		fnInitSeat();
+			
+		ifrmSeatDetail.location.href = "http://ticket.interpark.com/booking/loading.html";
+		
+		var url = "";
+		var FullSeatView = "";
+
+	
+		if (frmSeat.chkFullSeatView.checked)
+		{
+			FullSeatView = "Y";
+		}
+			
+		url = "BookingSeatView.asp";
+		url += "?GoodsCode=17007474&PlaceCode=13811094&PlaySeq=002";
+		url += "&SeatGrade=" + SeatGrade;
+		url += "&Block=" + Block;
+		url += "&TmgsOrNot=D2006";
+		url += "&LocOfImage=";
+		url += "&UILock=Y";
+		url += "&FullSeatView=" + FullSeatView;
+		
+		ifrmSeatView.location.href = url;
+		
+		
+		url = "BookingSeatDetailMap.asp";
+		url += "?GoodsCode=17007474&PlaceCode=13811094&PlaySeq=002";
+		url += "&SeatGrade=" + SeatGrade;
+		url += "&Block=" + Block;
+		url += "&TmgsOrNot=D2006";
+		url += "&LocOfImage=";
+		url += "&Tiki=N";
+		url += "&UILock=Y";
+		url += "&FullSeatView=" + FullSeatView;
+		
+		ifrmSeatDetail.location.href = url;
+		
+	}
+	
+	//GradeBuffer Collection 추가
+	function fnAddGrade(SeatGrade, SeatGradeName, SalesPrice, RemainCnt)
+	{
+		GradeBuffer.put(new Grade(SeatGrade, SeatGradeName, SalesPrice, RemainCnt));
+	}
+		
+	//BlockBuffer Collection 추가
+	function fnAddBlock(v1, v2, v3, v4)
+	{
+		BlockBuffer.put(new SeatBlock(v1, v2, v3, v4));
+	}
+	
+	//BlockBuffer 정보 요청
+	function fnBlockUpdate()
+	{
+		BlockBuffer.clear();
+		fnHttpRead("BookingInfo.asp?Flag=AllBlock&GoodsCode=17007474&PlaceCode=13811094&PlaySeq=002&Tiki=N&TmgsOrNot=D2006");
+	}
+	
+	//좌석 화면 로드
+	function fnSeatUpdate()
+	{
+	//	alert("ok");
+		ifrmSeatDetail.location.href = "BookingSeatDetailMap.asp?GoodsCode=17007474&PlaceCode=13811094&TmgsOrNot=D2006&LocOfImage=&Tiki=N&PlaySeq=002";
+	
+		ifrmSeatView.location.href = "BookingSeatView.asp?GoodsCode=17007474&PlaceCode=13811094&LocOfImage=&TmgsOrNot=D2006&PlaySeq=002";
+	
+		
+		//블럭정보 요청
+		fnBlockUpdate();
+	}
+
+	//블럭 정보 조회
+	function fnGetBlockInfo(Block)
+	{
+		var o;
+		var str = "";
+		for(i=0;i<BlockBuffer.index;i++)
+		{
+			o = BlockBuffer.pop(i);
+			if(o.equal(Block))
+			{
+				if(str=="")
+					str = "[" + o.SeatGradeName + "]" + " " + o.RemainCnt + "석";
+				else
+					str = str + "\n" + "[" + o.SeatGradeName + "]" + " " + o.RemainCnt + "석";
+			}
+		}
+		if(str == "")
+			str = "[잔여석] 0석";
+
+		return str;
+	}	
+	
+
+	//좌석 선택
+	function fnAddSeat(SeatGrade, Floor, RowNo, SeatNo, Block)
+	{
+		if(SeatBuffer.index < 10)
+		{
+			//좌석 버퍼에 좌석 추가
+			SeatBuffer.put(new Seat(SeatGrade, Floor, RowNo, SeatNo, Block));
+			//등급 버퍼에 좌석수 변경
+			o = GradeBuffer.pop(GradeBuffer.search(SeatGrade));
+			++o.MyCnt;
+			//화면변경
+			fnMySeatUpdate();
+		
+			return true;
+		}
+		else
+		{
+			alert("좌석은 10매까지만 예매가능합니다.");
+			return false;
+		}
+	}
+
+	//좌석 선택 취소
+	function fnRemoveSeat(SeatGrade, Floor, RowNo, SeatNo, Block)
+	{
+		//좌석 버퍼에서 좌석 제거
+		SeatBuffer.remove(SeatBuffer.search(new Seat(SeatGrade, Floor, RowNo, SeatNo, Block)));		
+		//등급 버퍼에 좌석수 변경
+		o = GradeBuffer.pop(GradeBuffer.search(SeatGrade));
+		--o.MyCnt;
+		
+		//화면변경
+		fnMySeatUpdate();
+		
+		return true		
+	}
+</script>
+
+</head>
+
+<body leftmargin="0" topmargin="0" onload="fnInit()">
+<table height=680 cellSpacing=0 cellPadding=0 width=900 border=0>
+<form name="frmSeat">
+<input type="hidden" name="SessionId" value="">
+  <tr>
+    <td height="43" bgcolor="#3B4A57"><table width="100%"  border="0" cellspacing="0" cellpadding="0">
+      <tr>
+        <td width="145" rowspan="2"><img src="http://ticketimage.interpark.com/TicketImage/event/061227/seat_title.gif" width="138" height="25"></td>
+        <td colspan="3" height="18">
+			<font color="F7C70B">諛붾떎?먰뿕?� ?ν넗??PlaceName=?뚯썡?꾪듃?�</font> 
+			<font color="#FFFFFF">l</font>
+			<font color="#f7c70b"></font>
+			&nbsp;<input type="button" value="퍼지링크" style="cursor:pointer;" onClick="javascript:window.open('http://oapi.idunbiz.com/purge/interpark/view.php')">
+			<!--		http://purge.g-platform.net/interpark/  -->
+		</td>
+      </tr>
+      
+      <tr>
+        <td width="210" height="20">
+		
+		
+		
+		
+         </td>
+        <td>&nbsp;</td>
+        <td></td>
+      </tr>
+    </table></td>
+  </tr>
+  <tr>
+    <td height="3" bgcolor="E3E0D6"></td>
+  </tr>
+  <tr>
+    <td bgcolor="#E3E0D6"><table width="894" border="0" align="center" cellpadding="0" cellspacing="0">
+      <tr>
+        <td bgcolor="CDCDCD"><table height=677 width="100%"  border="0" cellspacing="1" cellpadding="1">
+          <tr>
+            <td bgcolor="#FFFFFF"><table width="100%" height=677 border="0" cellspacing="0" cellpadding="0">
+              <tr valign="top">
+                <td width="660" height="620" align="center">
+                
+                
+                
+                
+                
+                <iframe id="ifrmSeatDetail" name="ifrmSeatDetail" scrolling="auto" width="660" height="620" marginwidth="0" marginheight="0" frameborder="no" src="loading.html"></iframe>
+                
+                
+                
+                </td>
+                <td>
+                
+                
+                
+                <table width="222" border="0" align="center" cellpadding="0" cellspacing="0">
+                  
+                  
+                 
+                  <tr>
+                    <td height="25">
+                    
+                    <table width="100%"  border="0" cellspacing="0" cellpadding="0">
+                        <tr>
+                          <td height="25"><img src="http://ticketimage.interpark.com/TicketImage/event/061227/seat_title_01.gif" width="60" height="18" align="absmiddle"> 영역을 선택하세요 <a href="javascript:fnSeatUpdate()"><img src="http://ticketimage.interpark.com/TicketImage/event/061227/s_all_b.gif" width="50" height="18" border="0" align="absmiddle"></a></td>
+                        </tr>
+                        <tr>
+                          <td>
+                          
+                          <table width="100%"  border="0" cellspacing="0" cellpadding="0">
+                            <tr>
+                              <td width="5" height="5"><img src="http://ticketimage.interpark.com/TicketImage/event/061227/st_left_01.gif" width="5" height="5"></td>
+                              <td height="5" bgcolor="E7EBEB"></td>
+                              <td width="5" height="5"><img src="http://ticketimage.interpark.com/TicketImage/event/061227/st_right_01.gif" width="5" height="5"></td>
+                            </tr>
+                            <tr>
+                              <td width="5" bgcolor="E7EBEB"></td>
+                              <td bgcolor="E7EBEB">
+                              
+                              <input type="checkbox" id="chkFullSeatView" name="chkFullSeatView" class="input_box2" LANGUAGE=javascript onclick="fnFullSeatView()">
+                              좌표보기
+                              </td>
+                              <td width="5" bgcolor="E7EBEB"></td>
+                            </tr>
+
+
+                            <tr>
+                              <td width="5" bgcolor="E7EBEB"></td>
+                              <td height="170" bgcolor="E7EBEB">
+                              
+                              
+                              
+                              
+                              
+                              <iframe id="ifrmSeatView" name="ifrmSeatView" scrolling="no" width="100%" height="170" marginwidth="0" marginheight="0" frameborder="no" src="loading.html"></iframe>
+                              
+                              
+                              
+                              
+                              
+                              </td>
+                              <td width="5" bgcolor="E7EBEB"></td>
+                            </tr>
+                            <tr>
+                              <td width="5" height="5"><img src="http://ticketimage.interpark.com/TicketImage/event/061227/st_left_02.gif" width="5" height="5"></td>
+                              <td height="5" bgcolor="E7EBEB"></td>
+                              <td width="5" height="5"><img src="http://ticketimage.interpark.com/TicketImage/event/061227/st_right_02.gif" width="5" height="5"></td>
+                            </tr>
+                          </table></td>
+                        </tr>
+                     </table>
+                     
+                     </td>
+                  </tr>
+                  <tr>
+                    
+                    
+                    <td height="25">
+                    
+                    <table width="100%"  border="0" cellspacing="0" cellpadding="0">
+                        <tr>
+                          <td height="25"><img src="http://ticketimage.interpark.com/TicketImage/event/061227/seat_title_02.gif" width="114" height="17" align="absmiddle"> 할인은 다음단계</td>
+                        </tr>
+                        <tr>
+                          <td>
+                          <table width="100%"  border="0" cellspacing="0" cellpadding="0">
+                            <tr>
+                              <td width="5" height="5"><img src="http://ticketimage.interpark.com/TicketImage/event/061227/st_left_01.gif" width="5" height="5"></td>
+                              <td height="5" bgcolor="E7EBEB"></td>
+                              <td width="5" height="5"><img src="http://ticketimage.interpark.com/TicketImage/event/061227/st_right_01.gif" width="5" height="5"></td>
+                            </tr>
+                            <tr>
+                              <td width="5" bgcolor="E7EBEB"></td>
+                              <td align="center" bgcolor="E7EBEB" height="120">
+                              
+								
+								<iframe id="ifrmSeatPrice" name="ifrmSeatPrice" scrolling="auto" width="100%" height="100%" marginwidth="0" marginheight="0" frameborder="no" src="loading.html"></iframe>
+                              
+                              </td>
+                              <td width="5" bgcolor="E7EBEB"></td>
+                            </tr>
+                            <tr>
+                              <td width="5" height="5"><img src="http://ticketimage.interpark.com/TicketImage/event/061227/st_left_02.gif" width="5" height="5"></td>
+                              <td height="5" bgcolor="E7EBEB"></td>
+                              <td width="5" height="5"><img src="http://ticketimage.interpark.com/TicketImage/event/061227/st_right_02.gif" width="5" height="5"></td>
+                            </tr>
+                          </table>
+                          </td>
+                        </tr>
+                      </table>
+                      </td>
+                  </tr>
+                 
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  <tr>
+                    <td height="25">
+                    
+                    
+                    <table width="100%"  border="0" cellspacing="0" cellpadding="0">
+                      <tr>
+                        <td height="25"><img src="http://ticketimage.interpark.com/TicketImage/event/061227/seat_title_03.gif" width="51" height="18" align="absmiddle"></td>
+                      </tr>
+                      <tr>
+                        <td>
+                        
+                        
+                        
+                        
+                        <table width="100%"  border="0" cellspacing="0" cellpadding="0">
+                          <tr>
+                            <td width="5" height="5"><img src="http://ticketimage.interpark.com/TicketImage/event/061227/st_left_01.gif" width="5" height="5"></td>
+                            <td height="5" bgcolor="E7EBEB"></td>
+                            <td width="5" height="5"><img src="http://ticketimage.interpark.com/TicketImage/event/061227/st_right_01.gif" width="5" height="5"></td>
+                          </tr>
+                          <tr>
+                            <td width="5" bgcolor="E7EBEB"></td>
+                            <td align="center" bgcolor="E7EBEB"><table width="100%"  border="0" cellspacing="0" cellpadding="0">
+                                <tr>
+                                  <td bgcolor="CCCCCC"><table width="100%"  border="0" cellspacing="1" cellpadding="1">
+                                      <tr align="center" bgcolor="EEEBDF">
+                                        <td width="36%" height="20"><strong>좌석</strong></td>
+                                        <td><strong>좌석번호</strong></td>
+                                        </tr>
+                                      <tr bgcolor="E7EBEB">
+                                        <td colspan="2">
+                                        
+                                        <iframe id="ifrmMySeat" name="ifrmMySeat" scrolling="auto" width="100%" height="110" marginwidth="0" marginheight="0" frameborder="no" src="null.html"></iframe>
+                                        
+                                        </td>
+                                      </tr>
+                                      <tr align="center" bgcolor="EEEBDF">
+                                        <td height="21" colspan="2"><img src="http://ticketimage.interpark.com/TicketImage/event/061227/seat_dot.gif" width="5" height="5" align="absmiddle"> <font color="FF6600">총 <span id="SelectedSeatCount" name="SelectedSeatCount">0</span>석 선택되었습니다</font></td>
+                                      </tr>
+                                  </table></td>
+                                </tr>
+                                <tr>
+                                  <td height="50"><table width="95%"  border="0" align="center" cellpadding="0" cellspacing="0">
+                                      <tr>
+                                        <td height="22"><a href="javascript:fnRefresh()"><img src="http://ticketimage.interpark.com/TicketImage/event/061227/saet_b_01.gif" width="68" height="20" border="0"></a></td>
+                                        <td width="130" rowspan="2"><a href="javascript:fnSelect()"><img id="NextButton" name="NextButton" src="http://ticketimage.interpark.com/TicketImage/event/061227/seat_ok_b.gif" width="128" height="39" border="0"></a></td>
+                                      </tr>
+                                      <tr>
+                                        <td height="22"><a href="javascript:fnCancel()"><img src="http://ticketimage.interpark.com/TicketImage/event/061227/saet_b_02.gif" width="68" height="20" border="0"></a></td>
+                                      </tr>
+                                  </table></td>
+                                </tr>
+                            </table></td>
+                            <td width="5" bgcolor="E7EBEB"></td>
+                          </tr>
+                          <tr>
+                            <td width="5" height="5"><img src="http://ticketimage.interpark.com/TicketImage/event/061227/st_left_02.gif" width="5" height="5"></td>
+                            <td height="5" bgcolor="E7EBEB"></td>
+                            <td width="5" height="5"><img src="http://ticketimage.interpark.com/TicketImage/event/061227/st_right_02.gif" width="5" height="5"></td>
+                          </tr>
+                        </table>
+                        
+                        <td>
+                      </tr>
+                    </table>
+                    </td>
+                  </tr>
+                </table>
+                </td>
+              </tr>
+            </table>
+            </td>
+          </tr>
+        </table>
+        </td>
+      </tr>
+    </table>
+    </td>
+  </tr>
+  <tr>
+    <td height="3" bgcolor="E3E0D6"></td>
+  </tr>
+</form>
+</table>
+<iframe id="ifrmInfo" name="ifrmInfo" scrolling="no" width="0" height="0" marginwidth="0" marginheight="0" frameborder="no" src="null.html"></iframe>
+<form name="frmInfo" action="BookingInfo.asp" method="post" target="ifrmInfo">
+<input type="hidden" name="Flag" value="Blocking">
+<input type="hidden" name="GoodsCode" value="17007474">
+<input type="hidden" name="PlaceCode" value="13811094">
+<input type="hidden" name="PlaySeq">
+<input type="hidden" name="SessionId" value="">
+<input type="hidden" name="SeatCnt">
+<input type="hidden" name="SeatGrade">
+<input type="hidden" name="Floor">
+<input type="hidden" name="RowNo">
+<input type="hidden" name="SeatNo">
+</form>
+</body>
+</html>
