@@ -11,6 +11,66 @@ const upload = multer({
     limits : {fileSize : 1024 * 1024 * 30}
 });
 
+router.post('/parse/show', upload.single('file'), (req, res) => {
+//차후 show의 schedule 업데이트할 주소
+    //<1. 엑셀 파일 로드>
+    //엑셀 파일 버퍼 읽기
+    const Excel_file_buffer = req.file.buffer;
+    const Excel_file = XLSX.read(Excel_file_buffer);
+
+    //엑셀 시트 읽기
+    const Excel_sheet = Excel_file.Sheets[Excel_file.SheetNames[0]];
+    const Excel_sheet_range = XLSX.utils.decode_range(Excel_sheet['!ref'].toString());
+
+    console.log(Excel_sheet_range)
+    const columns_parser = {
+        date : 0,
+        time : 1,
+        url : 2
+    };
+    let parsed = [];
+    for(let r = Excel_sheet_range.s.r;r<=Excel_sheet_range.e.r;r++) {
+        let row = {};
+        for(let col in columns_parser) {
+            let cell_address = XLSX.utils.encode_cell({c: columns_parser[col], r: r});
+            console.log(Excel_sheet[cell_address]);
+            row[col] = Excel_sheet[cell_address].w;
+        }
+        parsed.push(row);
+    }
+
+    res.json(parsed);
+});
+router.post('/parse/theater', upload.single('file'), (req, res) => {
+    /*
+     column은 반드시 다음의 순서를 맞춰야 한다.
+     층 수, 열, 번호, 등급
+     */
+    //엑셀 파일 버퍼 읽기
+    const Excel_file_buffer = req.file.buffer;
+    const Excel_file = XLSX.read(Excel_file_buffer);
+
+    //엑셀 시트 읽기
+    const Excel_sheet = Excel_file.Sheets[Excel_file.SheetNames[0]];
+    const Excel_sheet_range = XLSX.utils.decode_range(Excel_sheet['!ref'].toString());
+
+    const columns_parser = {
+        floor : 0,
+        col : 1,
+        num : 2,
+        seat_class:3
+    };
+    let seats = [];
+    for(let r = Excel_sheet_range.s.r;r<=Excel_sheet_range.e.r;r++) {
+        let seat = {};
+        for(let col in columns_parser) {
+            let cell_address = XLSX.utils.encode_cell({c: columns_parser[col], r: r});
+            seat[col] = Excel_sheet[cell_address].v;
+        }
+        seats.push(seat);
+    }
+    res.json(seats);
+});
 
 // 엑셀 파일 업로드
 /*
@@ -22,7 +82,7 @@ const upload = multer({
  5. 파싱된 데이터를 통해 예매 데이터로 변환
  6. 예매 데이터 출력
  */
-router.post('/upload', upload.single('file'), (req, res) => {
+router.post('/parse/reservation', upload.single('file'), (req, res) => {
 
     //<1. 엑셀 파일 로드>
     //엑셀 파일 버퍼 읽기
@@ -45,8 +105,8 @@ router.post('/upload', upload.single('file'), (req, res) => {
      show_time_minute,      //없을 시 0 - 공연 분
      seat_class,            //필수 - 좌석 등급
      seat_position_floor,   //없을 시 null - 좌석 층수
-     seat_position_row,     //없을 시 null - 좌석 행
-     seat_position_column,  //없을 시 null - 좌석 열
+     seat_position_col,     //없을 시 null - 좌석 열
+     seat_position_num,     //없을 시 null - 좌석 번호
      ticket_quantity,       //없을 시 1 - 티켓 수량
      ticket_code,           //필수 - 예약 번호, 주문 번호, 티켓 번호 등 각 사이트별 코드
      ticket_price           //필수 - 티켓 가격
@@ -162,13 +222,13 @@ router.post('/upload', upload.single('file'), (req, res) => {
             if(!(o['seat_position_floor'])) {
                 o['seat_position_floor'] = null;
             }
-            // 행 초기화
-            if(!(o['seat_position_row'])) {
-                o['seat_position_row'] = null;
-            }
             // 열 초기화
-            if(!(o['seat_position_column'])) {
-                o['seat_position_column'] = null;
+            if(!(o['seat_position_col'])) {
+                o['seat_position_col'] = null;
+            }
+            // 번호 초기화
+            if(!(o['seat_position_num'])) {
+                o['seat_position_num'] = null;
             }
             // 티켓 수량 초기화
             if(!(o['ticket_quantity'])) {
@@ -187,8 +247,8 @@ router.post('/upload', upload.single('file'), (req, res) => {
          seat_class : '',     //좌석 등급
          seat_position : {    //좌석 위치 -> 없을 시 null
          floor,
-         row,
-         column
+         col,
+         num
          },
          ticket_quantity,     //티켓 수량
          ticket_code,         //예약 번호, 주문 번호, 티켓 번호 등 각 사이트별 코드
@@ -211,13 +271,13 @@ router.post('/upload', upload.single('file'), (req, res) => {
                 row.show_time_minute
             );
             result.seat_class = row.seat_class;
-            if(!row.floor && !row.row && !row.column)
+            if(!row.floor && !row.col && !row.num)
                 result.seat_position = null;
             else
                 result.seat_position = {
                     floor : row.floor,
-                    row : row.row,
-                    column : row.column
+                    col : row.col,
+                    num : row.num
                 };
             result.ticket_quantity = row.ticket_quantity;
             result.ticket_code = row.ticket_code;
@@ -277,7 +337,7 @@ router.get('/read/:source', (req, res) => {
 });
 
 //엑셀 파싱 룰을 수정한다.
-router.put('/modify', (req, res) => {
+router.put('/update', (req, res) => {
     Excel.update({_id:req.body._id}, {$set: req.body}, (err) => {
         if(err) {
             console.error(err);

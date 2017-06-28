@@ -1,12 +1,20 @@
 import express from 'express';
+import multer from 'multer';
 import {Theater} from '../models';
+import XLSX from 'xlsx';
 
 const router = express.Router();
+
+// 파일 업로드 모듈. 최대 사이즈 : 30MB
+const upload = multer({
+    storage : multer.memoryStorage(),
+    limits : {fileSize : 1024 * 1024 * 30}
+});
 
 //공연장을 만든다.
 router.post('/create', (req, res) => {
     const theater = new Theater(req.body);
-    theater.save((err, result) => {
+    theater.save((err) => {
         if(err) {
             console.error(err);
             return res.status(500).send('Theater Create Error', err);
@@ -24,7 +32,7 @@ router.get('/read/:id', (req, res) => {
 
     //source 파라미터가 all일 경우 모든 데이터 조회
     let query;
-    if(req.params.source==='all')
+    if(req.params.id==='all')
         query = {};
     else
         query = {_id:req.params.id};
@@ -45,8 +53,10 @@ router.get('/read/:id', (req, res) => {
 });
 
 //공연장을 수정한다.
-router.put('/modify', (req, res) => {
-    Theater.update({_id:req.body._id}, {$set: req.body}, (err) => {
+router.put('/update', (req, res) => {
+    //공연장의 좌석 배치를 수정한다.
+    console.log(req.body._id);
+    Theater.update({_id:req.body._id}, {$set: {seats_quantity : req.body.seats.length, seats : req.body.seats}}, (err) => {
         if(err) {
             console.error(err);
             return res.status(500).send('Theater Modify Error', err);

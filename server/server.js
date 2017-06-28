@@ -36,13 +36,13 @@ app.use(bodyParser.json());
 //API 라우트
 app.use('/api', api);
 
-//메인 html
-app.get('/', (req, res)=> {
-    res.sendFile(path.resolve(__dirname, './../public/index.html'));
-});
-
 //정적 파일 라우트
 app.use('/', express.static(path.join(__dirname, './../public')));
+
+//메인 html
+app.get('/*', (req, res)=> {
+    res.sendFile(path.resolve(__dirname, './../public/index.html'));
+});
 
 //404 에러
 app.use((req, res) => {

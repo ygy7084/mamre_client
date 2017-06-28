@@ -24,7 +24,7 @@ router.get('/read/:id', (req, res) => {
 
     //source 파라미터가 all일 경우 모든 데이터 조회
     let query;
-    if(req.params.source==='all')
+    if(req.params.id==='all')
         query = {};
     else
         query = {_id:req.params.id};
@@ -45,7 +45,7 @@ router.get('/read/:id', (req, res) => {
 });
 
 //공연 일정을 수정한다.
-router.put('/modify', (req, res) => {
+router.put('/update', (req, res) => {
     Show.update({_id:req.body._id}, {$set: req.body}, (err) => {
         if(err) {
             console.error(err);

@@ -32,8 +32,8 @@ mongoose_function(mongoose);
      show_time_minute,       //공연 분
      seat_class,             //좌석 등급
      seat_position_floor,    //좌석 층
-     seat_position_row,      //좌석 행
-     seat_position_column,   //좌석 열
+     seat_position_col,      //좌석 열
+     seat_position_num,      //좌석 번호
      ticket_quantity,        //티켓 수량
      ticket_code,            //티켓 코드
      ticket_price            //티켓 가격
@@ -78,11 +78,11 @@ const Excel = new Schema({
             field : String,
             code : Function
         },
-        seat_position_row : {
+        seat_position_col : {
             field : String,
             code : Function
         },
-        seat_position_column : {
+        seat_position_num : {
             field : String,
             code : Function
         },

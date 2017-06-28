@@ -1,6 +1,6 @@
 import React from 'react';
 
-class API_test extends React.Component {
+class API_test_Excel_Reservation extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
@@ -52,7 +52,7 @@ class API_test extends React.Component {
 
     }
     handleChange(e) {
-        this.uploadFile(e.target.files[0], '/api/excel/upload');
+        this.uploadFile(e.target.files[0], '/api/excel/parse/reservation');
         this.setState({
             status:e.target.value
         });
@@ -63,7 +63,7 @@ class API_test extends React.Component {
                 <h1>{this.state.status}</h1>
                 <form onSubmit={this.handleSubmit}>
                     <label>
-                        Excel :
+                        쿠팡 엑셀 예약 파싱 테스트
                         <input type='file' onChange={this.handleChange}/>
                     </label>
                     <input type='submit' value='업로드'/>
@@ -73,4 +73,4 @@ class API_test extends React.Component {
     }
 }
 
-export default API_test;
+export default API_test_Excel_Reservation;

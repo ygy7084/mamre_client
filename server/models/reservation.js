@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 
 /* Reservation 스키마
+ input_date,          //예약이 입력된 시간 및 날짜
  source,              //공연 예매 출처
  customer_name,       //고객 성함
  customer_phone,      //고객 번호(뒷 4자리)
@@ -8,8 +9,8 @@ import mongoose from 'mongoose';
  seat_class : '',     //좌석 등급
  seat_position : {    //좌석 위치 -> 없을 시 null
  floor,
- row,
- column
+ col,
+ num
  },
  ticket_quantity,     //티켓 수량
  ticket_code,         //예약 번호, 주문 번호, 티켓 번호 등 각 사이트별 코드
@@ -19,6 +20,7 @@ import mongoose from 'mongoose';
  */
 const Schema = mongoose.Schema;
 const Reservation = new Schema({
+    input_date : Date,
     source : String,
     customer_name : String,
     customer_phone : String,
@@ -26,8 +28,8 @@ const Reservation = new Schema({
     seat_class : String,
     seat_position : {
         floor : Number,
-        row : Number,
-        colum : Number
+        col : Number,
+        num : Number
     },
     ticket_quantity : Number,
     ticket_code : String,

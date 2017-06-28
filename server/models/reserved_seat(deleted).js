@@ -6,7 +6,7 @@ import mongoose from 'mongoose';
  seats       // 예약된 좌석
 
              //ex)예약된 좌석 예제
- seats : [ {floor, row, column, ObjectID}, ...] //ObjectID는 reservation 참조
+ seats : [ {floor, col, num, ObjectID}, ...] //ObjectID는 reservation 참조
  */
 const Schema = mongoose.Schema;
 const Reserved_Seat = new Schema({

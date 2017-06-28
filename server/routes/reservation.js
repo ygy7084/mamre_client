@@ -1,9 +1,73 @@
 import express from 'express';
-import {Reservation} from '../models';
+import {Reservation, Show, Theater} from '../models';
+import {cralwer} from './module';
 
 const router = express.Router();
 
+// const getReverseOfCrawledData = (array, theater_id) => {
+//     Theater.find({_id:theater_id}).lean().exec((err, results) => {
+//         if(err) {
+//             console.error(err);
+//             return err;
+//         }
+//         let theater = results[0];
+//
+//         const diff = (A, B) => {
+//             let arr = [];
+//             for (l of A) {
+//                 B.indexOf(l) < 0 ? arr.push(JSON.parse(l)) : null
+//             }
+//             return arr;
+//         };
+//         let tempA = [];
+//         let tempB = [];
+//         for(let i=0;i<theater.seats.length;i++) {
+//             let obj = {
+//                 floor : theater_id.
+//             }
+//         }
+//
+//     })
+// };
+
 //예매 내역을 만든다.
+router.post('/create/crawler', (req, res) => {
+    /*
+    req.body : {
+        show : ObjectID,
+        theater : ObjectID,
+        date : Date
+    }
+     */
+    model_show.aggregate([
+        {$match: {_id: toMongoID(show_id)}},
+        {$project: {
+            schedule: {$filter: {
+                input: '$schedule',
+                as: 'schedule',
+                cond: { $and : [
+                    {$eq: ['$$schedule.theater', toMongoID(theater_id)]},
+                    {$eq: ['$$schedule.date', date]}]
+                }},
+            }}}
+    ]).exec((err, data) => {
+        if(err)
+            console.error(err);
+        console.log(data[0].schedule[0].url);
+    });
+    const reservation = new Reservation(req.body);
+    reservation.save((err, result) => {
+        if(err) {
+            console.error(err);
+            return res.status(500).send('Reservation Create Error', err);
+        }
+        else {
+            return res.json({
+                success : true
+            });
+        }
+    });
+});
 router.post('/create', (req, res) => {
     const reservation = new Reservation(req.body);
     reservation.save((err, result) => {
@@ -45,7 +109,7 @@ router.get('/read/:id', (req, res) => {
 });
 
 //예매 내역을 수정한다.
-router.put('/modify', (req, res) => {
+router.put('/update', (req, res) => {
     Reservation.update({_id:req.body._id}, {$set: req.body}, (err) => {
         if(err) {
             console.error(err);

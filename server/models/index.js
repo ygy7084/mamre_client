@@ -1,6 +1,6 @@
 import Excel from './excel';
 import Reservation from './reservation';
-import Reserved_Seat from './reserved_seat';
+import Reserved_Seat from './reserved_seat(deleted)';
 import Show from './show';
 import Theater from './theater';
 
