@@ -17,7 +17,7 @@ router.post('/create', (req, res) => {
     theater.save((err) => {
         if(err) {
             console.error(err);
-            return res.status(500).send('Theater Create Error', err);
+            return res.status(500).json({message:'Theater Create Error', err:err.message});
         }
         else {
             return res.json({
@@ -41,7 +41,7 @@ router.get('/read/:id', (req, res) => {
     Theater.find(query).lean().exec((err, theater) => {
         if(err) {
             console.error(err);
-            return res.status(500).send('Show Read Error', err);
+            return res.status(500).json({message:'Show Read Error', err:err.message});
         }
         else {
             return res.json({
@@ -55,15 +55,17 @@ router.get('/read/:id', (req, res) => {
 //공연장을 수정한다.
 router.put('/update', (req, res) => {
     //공연장의 좌석 배치를 수정한다.
-    console.log(req.body._id);
-    Theater.update({_id:req.body._id}, {$set: {seats_quantity : req.body.seats.length, seats : req.body.seats}}, (err) => {
+    Theater.update({_id:req.body._id}, {$set: {seats_quantity : req.body.seats.length, seats : req.body.seats}}, (err, results) => {
         if(err) {
             console.error(err);
-            return res.status(500).send('Theater Modify Error', err);
+            return res.status(500).json({message:'Theater Modify Error', err:err.message});
         }
         else {
+            if(results.nModified === 0) {
+                return res.status(500).json({message:'Theater Modify Error', err:'공연장을 찾을 수 없거나 공연장의 좌석에 변함이 없습니다.'});
+            }
             return res.json({
-                success : true
+                success:true
             });
         }
     });
@@ -71,12 +73,15 @@ router.put('/update', (req, res) => {
 
 //공연장을 삭제한다.
 router.delete('/delete', (req, res) => {
-    Theater.remove({_id:req.body._id}, (err) => {
+    Theater.remove({_id:req.body._id}, (err, results) => {
         if(err) {
             console.error(err);
-            return res.status(500).send('Theater Delete Error', err);
+            return res.status(500).json({message:'Theater Delete Error', err:err.message});
         }
         else {
+            if(results.result.n=== 0) {
+                return res.status(500).json({message:'Theater Delete Error', err:'공연장을 찾지 못하였거나 삭제가 불가능합니다.'});
+            }
             return res.json({
                 success : true
             });

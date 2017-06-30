@@ -59,7 +59,7 @@ router.post('/create/crawler', (req, res) => {
     reservation.save((err, result) => {
         if(err) {
             console.error(err);
-            return res.status(500).send('Reservation Create Error', err);
+            return res.status(500).json({message:'Reservation Create Error', err:err.message});
         }
         else {
             return res.json({
@@ -73,7 +73,7 @@ router.post('/create', (req, res) => {
     reservation.save((err, result) => {
         if(err) {
             console.error(err);
-            return res.status(500).send('Reservation Create Error', err);
+            return res.status(500).json({message:'Reservation Create Error', err:err.message});
         }
         else {
             return res.json({
@@ -97,7 +97,7 @@ router.get('/read/:id', (req, res) => {
     Reservation.find(query).lean().exec((err, reservation) => {
         if(err) {
             console.error(err);
-            return res.status(500).send('Reservation Read Error', err);
+            return res.status(500).json({message:'Reservation Read Error', err:err.message});
         }
         else {
             return res.json({
@@ -113,7 +113,7 @@ router.put('/update', (req, res) => {
     Reservation.update({_id:req.body._id}, {$set: req.body}, (err) => {
         if(err) {
             console.error(err);
-            return res.status(500).send('Reservation Modify Error', err);
+            return res.status(500).json({message:'Reservation Modify Error', err:err.message});
         }
         else {
             return res.json({
@@ -128,7 +128,7 @@ router.delete('/delete', (req, res) => {
     Reservation.remove({_id:req.body._id}, (err) => {
         if(err) {
             console.error(err);
-            return res.status(500).send('Reservation Delete Error', err);
+            return res.status(500).json({message:'Reservation Delete Error', err:err.message});
         }
         else {
             return res.json({

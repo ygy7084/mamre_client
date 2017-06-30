@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 require('mongoose-function')(mongoose);
 
 const db = mongoose.connection;
-mongoose.connect('mongodb://localhost:27017/mydb');
+mongoose.connect('mongodb://localhost:27017/rp');
 mongoose.Promise = global.Promise;
 
 db.on('error', console.error);

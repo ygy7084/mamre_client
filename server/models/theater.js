@@ -22,6 +22,8 @@ const Theater = new Schema({
     ]
 });
 
+Theater.index({name:1}, {unique:true});
+
 const model = mongoose.model('theater', Theater);
 
 export default model;

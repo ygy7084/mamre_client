@@ -4,8 +4,8 @@ class API_test_Excel_Show extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            theater_picked:{},
-            show_picked:{},
+            theater_picked:null,
+            show_picked:null,
             theater:[],
             show:[],
             parsed_excel:[]
@@ -18,7 +18,7 @@ class API_test_Excel_Show extends React.Component {
         let data = new FormData();
         data.append('file', file);
 
-        return fetch('/api/excel/parse/show',{
+        return fetch('/api/excel/parse/showtime',{
             method : 'POST',
             body : data
         })
@@ -41,8 +41,8 @@ class API_test_Excel_Show extends React.Component {
             show : this.state.show_picked._id,
             schedule : this.state.parsed_excel
         };
-        return fetch('/api/show/update',{
-            method : 'PUT',
+        return fetch('/api/showtime/create',{
+            method : 'POST',
             headers : {'Content-Type' : 'application/json'},
             body : JSON.stringify(data)
         })
@@ -122,12 +122,12 @@ class API_test_Excel_Show extends React.Component {
                     })}
                 </div>
                 <div>
-                    <p>{this.state.theater_picked.name}</p>
-                    <p>{this.state.show_picked.name}</p>
+                    <p>{this.state.theater_picked ? this.state.theater_picked.name+' '+this.state.theater_picked._id : null}</p>
+                    <p>{this.state.show_picked ? this.state.show_picked.name+' '+this.state.show_picked._id : null}</p>
                 </div>
                 <form>
                     <label>
-                        Show Excel을 통한 Modify 테스트
+                        Showtime Excel을 통한 Create 테스트
                         <input type='file' onChange={this.uploadExcel_change}/>
                     </label>
                 </form>
