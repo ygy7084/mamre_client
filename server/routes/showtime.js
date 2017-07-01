@@ -6,14 +6,14 @@ const router = express.Router();
 //공연 일정을 만든다.
 router.post('/create', (req, res) => {
     const show = new Showtime(req.body);
-    show.save((err, result) => {
+    show.save((err, results) => {
         if(err) {
             console.error(err);
-            return res.status(500).json({message:'Showtime Create Error', err:err.message});
+            return res.status(500).json({message:'Showtime Create Error - '+err.message});
         }
         else {
             return res.json({
-                success : true
+                data : results
             });
         }
     });
@@ -30,15 +30,14 @@ router.get('/read/:id', (req, res) => {
         query = {_id:req.params.id};
 
     //lean() -> 조회 속도 빠르게 하기 위함
-    Showtime.find(query).lean().exec((err, showtime) => {
+    Showtime.find(query).lean().exec((err, results) => {
         if(err) {
             console.error(err);
-            return res.status(500).json({message:'Showtime Read Error', err:err.message});
+            return res.status(500).json({message:'Showtime Read Error - '+err.message});
         }
         else {
             return res.json({
-                success : true,
-                showtime
+                data : results
             });
         }
     });
@@ -47,14 +46,14 @@ router.get('/read/:id', (req, res) => {
 //공연 일정을 수정한다.
 router.put('/update', (req, res) => {
 
-    Showtime.update({_id:req.body._id}, {$set: req.body}, (err) => {
+    Showtime.update({_id:req.body._id}, {$set: req.body}, (err, results) => {
         if(err) {
             console.error(err);
-            return res.status(500).json({message:'Showtime Modify Error', err:err.message});
+            return res.status(500).json({message:'Showtime Modify Error - '+err.message});
         }
         else {
             return res.json({
-                success : true
+                data : results
             });
         }
     });
@@ -62,14 +61,14 @@ router.put('/update', (req, res) => {
 
 //공연 일정을 삭제한다.
 router.delete('/delete', (req, res) => {
-    Showtime.remove({_id:req.body._id}, (err) => {
+    Showtime.remove({_id:req.body._id}, (err, results) => {
         if(err) {
             console.error(err);
-            return res.status(500).json({message:'Showtime Delete Error', err:err.message});
+            return res.status(500).json({message:'Showtime Delete Error - '+err.message});
         }
         else {
             return res.json({
-                success : true
+                data : results.result
             });
         }
     });

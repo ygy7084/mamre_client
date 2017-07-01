@@ -1,19 +1,9 @@
-let arr = [
-    {
-        a:1,
-        b:2
-    },
-    {
-        a:2,
-        b:3
-    },
-    {
-        a:3,
-        b:4
-    },
-];
-console.log(arr.map(e=> {
-    return e.a = e.a+1;
-}));
-for(let i in arr[0])
-    console.log(i);
+var p1 = Promise.resolve(3);
+var p2 = 1337;
+var p3 = new Promise(function(resolve, reject) {
+    setTimeout(resolve, 100, "foo");
+});
+
+Promise.all([p1, p2, p3]).then(function(values) {
+    console.log(values); // [3, 1337, "foo"]
+});

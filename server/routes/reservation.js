@@ -1,6 +1,5 @@
 import express from 'express';
-import {Reservation, Show, Theater} from '../models';
-import {cralwer} from './module';
+import {Reservation} from '../models';
 
 const router = express.Router();
 
@@ -50,34 +49,34 @@ router.post('/create/crawler', (req, res) => {
                     {$eq: ['$$schedule.date', date]}]
                 }},
             }}}
-    ]).exec((err, data) => {
+    ]).exec((err, results) => {
         if(err)
             console.error(err);
-        console.log(data[0].schedule[0].url);
+        console.log(results[0].schedule[0].url);
     });
     const reservation = new Reservation(req.body);
-    reservation.save((err, result) => {
+    reservation.save((err, results) => {
         if(err) {
             console.error(err);
-            return res.status(500).json({message:'Reservation Create Error', err:err.message});
+            return res.status(500).json({message:'Reservation Create Error - '+err.message});
         }
         else {
             return res.json({
-                success : true
+                data:results
             });
         }
     });
 });
 router.post('/create', (req, res) => {
     const reservation = new Reservation(req.body);
-    reservation.save((err, result) => {
+    reservation.save((err, results) => {
         if(err) {
             console.error(err);
-            return res.status(500).json({message:'Reservation Create Error', err:err.message});
+            return res.status(500).json({message:'Reservation Create Error - '+err.message});
         }
         else {
             return res.json({
-                success : true
+                data:results
             });
         }
     });
@@ -94,15 +93,14 @@ router.get('/read/:id', (req, res) => {
         query = {_id:req.params.id};
 
     //lean() -> 조회 속도 빠르게 하기 위함
-    Reservation.find(query).lean().exec((err, reservation) => {
+    Reservation.find(query).lean().exec((err, results) => {
         if(err) {
             console.error(err);
-            return res.status(500).json({message:'Reservation Read Error', err:err.message});
+            return res.status(500).json({message:'Reservation Read Error - '+err.message});
         }
         else {
             return res.json({
-                success : true,
-                reservation
+                data : results
             });
         }
     });
@@ -110,14 +108,14 @@ router.get('/read/:id', (req, res) => {
 
 //예매 내역을 수정한다.
 router.put('/update', (req, res) => {
-    Reservation.update({_id:req.body._id}, {$set: req.body}, (err) => {
+    Reservation.update({_id:req.body._id}, {$set: req.body}, (err, results) => {
         if(err) {
             console.error(err);
-            return res.status(500).json({message:'Reservation Modify Error', err:err.message});
+            return res.status(500).json({message:'Reservation Modify Error - '+err.message});
         }
         else {
             return res.json({
-                success : true
+                data : results
             });
         }
     });
@@ -125,14 +123,14 @@ router.put('/update', (req, res) => {
 
 //예매 내역을 삭제한다.
 router.delete('/delete', (req, res) => {
-    Reservation.remove({_id:req.body._id}, (err) => {
+    Reservation.remove({_id:req.body._id}, (err, results) => {
         if(err) {
             console.error(err);
-            return res.status(500).json({message:'Reservation Delete Error', err:err.message});
+            return res.status(500).json({message:'Reservation Delete Error - '+err.message});
         }
         else {
             return res.json({
-                success : true
+                data : results.result
             });
         }
     });

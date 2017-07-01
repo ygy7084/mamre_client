@@ -1,4 +1,4 @@
-let Crawler = require('crawler');
+import Crawler from 'crawler';
 
 const makeCrawler = (cb) => {
     return new Crawler({

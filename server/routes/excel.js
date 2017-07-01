@@ -52,7 +52,7 @@ router.post('/parse/showtime', upload.single('file'), (req, res) => {
         obj.date = new Date(year,mon-1,day,hour,min);
         results.push(obj);
     }
-    res.json(results);
+    res.json({data:results});
 });
 router.post('/parse/theater', upload.single('file'), (req, res) => {
     /*
@@ -82,7 +82,7 @@ router.post('/parse/theater', upload.single('file'), (req, res) => {
         }
         seats.push(seat);
     }
-    res.json(seats);
+    res.json({data:seats});
 });
 
 // 엑셀 파일 업로드
@@ -126,13 +126,13 @@ router.post('/parse/reservation', upload.single('file'), (req, res) => {
      */
     //타 조회처럼 Excel.find().lean().exec()으로 조회시 검색 시간이 빨라지나,
     //파싱 데이터에 저장된 함수를 Mongoose가 함수로 파싱하지 못한다.
-    Excel.find({source:req.body.source}).exec((err, result) => {
+    Excel.find({_id:req.body._id}).exec((err, results) => {
         if(err) {
             console.log(err);
-            return res.status(500).json({message:'Excel Upload Error', err:err.message});
+            return res.status(500).json({message:'Excel Upload Error - '+err.message});
         }
 
-        let excel = result[0];
+        let excel = results[0];
 
         //<3. 파싱>
         //필드가 들어있는 row의 위치를 찾아 저장한다.
@@ -143,15 +143,15 @@ router.post('/parse/reservation', upload.single('file'), (req, res) => {
         for(let r = Excel_sheet_range.s.r;r<=Excel_sheet_range.e.r;r++) {
             for(let c = Excel_sheet_range.s.c;c<=Excel_sheet_range.e.c;c++) {
                 let cell_address = XLSX.utils.encode_cell({c: c,r: r});
+                // console.log(Excel_sheet[cell_address]);
                 if(Excel_sheet[cell_address] && Excel_sheet[cell_address].v === key){
                     field_row = r;
                 }
             }
         }
-
         //필드가 있는 row를 못찾으면 에러 리턴
         if(field_row === -1){
-            return res.status(400).json({message:'Excel Upload Error', err: 'cannot find customer_name in excel file'});
+            return res.status(400).json({message:'Excel Upload Error - '+'cannot find customer_name in excel file'});
         }
 
         //필드 row에서 필드명에 따른 column의 위치를 저장
@@ -167,8 +167,9 @@ router.post('/parse/reservation', upload.single('file'), (req, res) => {
         //파싱 데이터에 필드명이 있는데 칼럼을 못찾았을 경우 에러 리턴
         for(let i in excel.parsing_rule) {
             if(excel.parsing_rule[i] && excel.parsing_rule[i].field) {
-                if(!excel.parsing_rule[i].c || excel.parsing_rule[i].c ==='')
-                    return res.status(400).json({message:'Excel Upload Error', err:'cannot parse '+i});
+                if(!excel.parsing_rule[i].c || excel.parsing_rule[i].c ==='') {
+                    return res.status(400).json({message: 'Excel Upload Error - '+'cannot parse ' + i});
+                }
             }
         }
 
@@ -187,16 +188,17 @@ router.post('/parse/reservation', upload.single('file'), (req, res) => {
                     let cell_address = XLSX.utils.encode_cell({c: excel.parsing_rule[i].c,r: row});
 
                     //v는 셀의 내용의 raw 데이터
-                    let string = Excel_sheet[cell_address].v;
+                    let cell_data = Excel_sheet[cell_address].v;
 
                     //정규식을 이용한 파싱 직전에 셀의 내용에서 공백과 빈칸을 전부 없앤다.
-                    let parsed_string = string.replace(/\s/gi, "");
+                    if(typeof cell_data === 'string')
+                        cell_data = cell_data.replace(/\s/gi, "");
 
                     //정규식을 이용한 파싱 (정규식 코드 없으면 셀 내용 변경 안함)
                     if(excel.parsing_rule[i].code) {
-                        parsed_string = excel.parsing_rule[i].code(parsed_string);
+                        cell_data = excel.parsing_rule[i].code(cell_data);
                     }
-                    parsed_rows[row][i] = parsed_string;
+                    parsed_rows[row][i] = cell_data;
                 }
             }
         }
@@ -215,11 +217,11 @@ router.post('/parse/reservation', upload.single('file'), (req, res) => {
                 o['seat_class'] &&
                 o['ticket_code'] &&
                 o['ticket_price']))
-                return res.status(400).json({message:'Excel Upload Error', err:'필수적인 파싱 내용 빠짐'});
+                return res.status(400).json({message:'Excel Upload Error - '+'필수적인 파싱 내용 빠짐'});
 
             //공연 연도 미입력 시 현재 연도 입력.
             //단, 현재 월보다 공연 월이 적은 값일 경우 내년이라고 인식하고 현재 연도+1을 입력
-            if(!(o['show_date_year'])) {
+            if(!o['show_date_year']) {
                 let month = o['show_date_month'];
                 let current_month = new Date().getMonth()+1;
                 let year = new Date().getFullYear();
@@ -269,55 +271,55 @@ router.post('/parse/reservation', upload.single('file'), (req, res) => {
          theater,             //공연장 참조
          show                 //공연 참조
          */
-        let results = [];
+        let outputs = [];
         for(let i=0;i<parsed_rows_array.length;i++) {
             let row = parsed_rows_array[i];
-            let result = {};
-            result.source = req.body.source;
-            result.customer_name = row.customer_name;
-            result.customer_phone = row.customer_phone;
-            result.show_date = new Date(
+            let output = {};
+            output.source = excel.source;
+            output.customer_name = row.customer_name;
+            output.customer_phone = row.customer_phone;
+            output.show_date = new Date(
                 row.show_date_year,
                 row.show_date_month-1,
                 row.show_date_day,
                 row.show_time_hour,
                 row.show_time_minute
             );
-            result.seat_class = row.seat_class;
-            if(!row.floor && !row.col && !row.num)
-                result.seat_position = null;
+            output.seat_class = row.seat_class;
+            if(!row.seat_position_floor && !row.seat_position_col && !row.seat_position_num)
+                output.seat_position = null;
             else
-                result.seat_position = {
-                    floor : row.floor,
-                    col : row.col,
-                    num : row.num
+                output.seat_position = {
+                    floor : row.seat_position_floor,
+                    col : row.seat_position_col,
+                    num : row.seat_position_num
                 };
-            result.ticket_quantity = row.ticket_quantity;
-            result.ticket_code = row.ticket_code;
-            result.ticket_price = row.ticket_price;
-            result.theater = req.body.theater;
-            result.show = req.body.show;
-            results.push(result);
+            output.ticket_quantity = row.ticket_quantity;
+            output.ticket_code = row.ticket_code;
+            output.ticket_price = row.ticket_price;
+            output.theater = req.body.theater;
+            output.show = req.body.show;
+            outputs.push(output);
         }
 
         //<6. 예매 데이터 출력>
-        return res.json(
-            results
-        );
+        return res.json({
+            data: outputs
+        });
     });
 });
 
 //엑셀 파싱 룰을 생성한다.
 router.post('/create', (req, res) => {
     const excel = new Excel(req.body);
-    excel.save((err) => {
+    excel.save((err, results) => {
         if(err) {
             console.error(err);
-            return res.status(500).json({message:'Excel Create Error', err:err.message});
+            return res.status(500).json({message:'Excel Create Error - '+err.message});
         }
         else {
             return res.json({
-                success : true
+                data : results
             });
         }
     });
@@ -331,21 +333,20 @@ router.get('/read/:key_name/:key_value', (req, res) => {
 
     const keys = ['source'];
     if(keys.indexOf(key_name) < 0)
-        return res.status(500).json({message:'Excel Read Error', err:'잘못된 key 이름을 입력하셨습니다 : '+key_name});
+        return res.status(500).json({message:'Excel Read Error - '+'잘못된 key 이름을 입력하셨습니다 : '+key_name});
 
     let query = {};
     query[key_name] = key_value;
 
     //lean() -> 조회 속도 빠르게 하기 위함
-    Excel.find(query).lean().exec((err, excel) => {
+    Excel.find(query).lean().exec((err, results) => {
         if(err) {
             console.error(err);
-            return res.status(500).json({message:'Excel Read Error', err:err.message});
+            return res.status(500).json({message:'Excel Read Error - '+err.message});
         }
         else {
             return res.json({
-                success : true,
-                excel
+                data:results
             });
         }
     });
@@ -354,15 +355,14 @@ router.get('/read/:key_name/:key_value', (req, res) => {
 //엑셀 파싱 룰을 전체 조회한다.
 router.get('/read', (req, res) => {
     //lean() -> 조회 속도 빠르게 하기 위함
-    Excel.find({}).lean().exec((err, excel) => {
+    Excel.find({}).lean().exec((err, results) => {
         if(err) {
             console.error(err);
-            return res.status(500).json({message:'Excel Read Error', err:err.message});
+            return res.status(500).json({message:'Excel Read Error - '+err.message});
         }
         else {
             return res.json({
-                success : true,
-                excel
+                data : results
             });
         }
     });
@@ -371,14 +371,14 @@ router.get('/read', (req, res) => {
 //엑셀 파싱 룰을 수정한다.
 router.put('/update', (req, res) => {
     console.log(req.body);
-    Excel.update({_id:req.body._id}, {$set: req.body.update}, (err) => {
+    Excel.update({_id:req.body._id}, {$set: req.body.update}, (err, results) => {
         if(err) {
             console.error(err);
-            return res.status(500).json({message:'Excel Modify Error', err:err.message});
+            return res.status(500).json({message:'Excel Modify Error - '+err.message});
         }
         else {
             return res.json({
-                success : true
+                data : results
             });
         }
     });
@@ -386,14 +386,15 @@ router.put('/update', (req, res) => {
 
 //엑셀 파싱 룰을 삭제한다.
 router.delete('/delete', (req, res) => {
-    Excel.remove({_id:req.body._id}, (err) => {
+    Excel.remove({_id:req.body._id}, (err, results) => {
         if(err) {
             console.error(err);
-            return res.status(500).json({message:'Excel Delete Error', err:err.message});
+            return res.status(500).json({message:'Excel Delete Error - '+err.message});
         }
         else {
+            console.log(results);
             return res.json({
-                success : true
+                data : results.result
             });
         }
     });

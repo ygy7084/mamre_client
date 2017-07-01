@@ -1,6 +1,6 @@
 
-var { resolve } = require('path');
-var webpack = require('webpack');
+const { resolve } = require('path');
+const webpack = require('webpack');
 
 module.exports = {
     context : resolve(__dirname, 'src'),

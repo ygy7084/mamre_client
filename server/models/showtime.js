@@ -21,7 +21,7 @@ const Showtime = new Schema({
     }]
 });
 
-Showtime.index({theate:1, show:1}, {unique:true});
+Showtime.index({theater:1, show:1}, {unique:true});
 
 const model = mongoose.model('showtime', Showtime);
 

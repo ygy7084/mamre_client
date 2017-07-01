@@ -29,12 +29,19 @@ class API_test_CRUD_Show extends React.Component {
             headers : {'Content-Type' : 'application/json'},
             body : JSON.stringify(data)
         })
-            .then(res => res.json())
+            .then(res =>{
+                if(res.ok)
+                    return res.json();
+                else
+                    return res.json().then(err => { throw err; })})
             .then(res => {
-                console.log(res);
+                console.log(res.data);
             })
             .catch((err) => {
-                console.log(err);
+                let message = err;
+                if(err.message && err.message!=='')
+                    message = err.message;
+                console.log(message);
             });
     }
     deleteChange(e) {
@@ -52,24 +59,38 @@ class API_test_CRUD_Show extends React.Component {
             headers : {'Content-Type' : 'application/json'},
             body : JSON.stringify(data)
         })
-            .then(res => res.json())
+            .then(res =>{
+                if(res.ok)
+                    return res.json();
+                else
+                    return res.json().then(err => { throw err; })})
             .then(res => {
-                console.log(res);
+                console.log(res.data);
             })
             .catch((err) => {
-                console.log(err);
+                let message = err;
+                if(err.message && err.message!=='')
+                    message = err.message;
+                console.log(message);
             });
     }
     read() {
         return fetch('/api/show/read/all', {
             method : 'GET'
         })
-            .then(res => res.json())
+            .then(res =>{
+                if(res.ok)
+                    return res.json();
+                else
+                    return res.json().then(err => { throw err; })})
             .then(res => {
-                console.log(res);
+                console.log(res.data);
             })
             .catch((err) => {
-                console.log(err);
+                let message = err;
+                if(err.message && err.message!=='')
+                    message = err.message;
+                console.log(message);
             });
     }
 

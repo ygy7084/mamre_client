@@ -4,70 +4,178 @@ class API_test_Excel_Reservation extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            status : ''//test
+            theater_picked:null,
+            show_picked:null,
+            excel_picked:null,
+            theater:[],
+            show:[],
+            excel:[],
+            parsed_excel:[]
         };
         this.uploadFile = this.uploadFile.bind(this);
-        this.handleSubmit = this.handleSubmit.bind(this);
         this.handleChange = this.handleChange.bind(this);
     }
     uploadFile(file, url) {
-        //test
-        let source = '쿠팡';
 
         //make formdata
         let data = new FormData();
         data.append('file', file);
-        data.append('source', source);
+        data.append('_id', this.state.excel_picked._id);
 
         return fetch(url,{
             method : 'POST',
             body : data
         })
-            .then(res => res.json())
+            .then(res =>{
+                if(res.ok)
+                    return res.json();
+                else
+                    return res.json().then(err => { throw err; })})
             .then(res => {
-                console.log(res);
+                console.log(res.data);
+                this.setState({parsed_excel:res.data});
             })
             .catch((err) => {
-                console.log(err);
+                let message = err;
+                if(err.message && err.message!=='')
+                    message = err.message;
+                console.log(message);
             });
-    }
-    handleSubmit(e) {
-        e.preventDefault();
-        let data = {
-            id : 'abc',
-            number : 123
-        };
-        fetch('/api/excel/create',{
-            method : 'POST',
-            headers : {'Content-Type' : 'application/json'},
-            body : JSON.stringify(data)
-        })
-            .then(res => res.json())
-            .then(res => {
-                console.log(res);
-            })
-            .catch((err) => {
-                console.log(err);
-            });
-
     }
     handleChange(e) {
         this.uploadFile(e.target.files[0], '/api/excel/parse/reservation');
-        this.setState({
-            status:e.target.value
-        });
+    }
+    componentWillMount() {
+        fetch('/api/theater/read/all',{
+            method : 'GET'
+        })
+            .then(res =>{
+                if(res.ok)
+                    return res.json();
+                else
+                    return res.json().then(err => { throw err; })})
+            .then(res => {
+                console.log(res.data);
+                this.setState({
+                    theater:res.data
+                });
+            })
+            .catch((err) => {
+                let message = err;
+                if(err.message && err.message!=='')
+                    message = err.message;
+                console.log(message);
+            });
+        fetch('/api/show/read/all',{
+            method : 'GET'
+        })
+            .then(res =>{
+                if(res.ok)
+                    return res.json();
+                else
+                    return res.json().then(err => { throw err; })})
+            .then(res => {
+                console.log(res.data);
+                this.setState({
+                    show:res.data
+                });
+            })
+            .catch((err) => {
+                let message = err;
+                if(err.message && err.message!=='')
+                    message = err.message;
+                console.log(message);
+            });
+        fetch('/api/excel/read',{
+            method : 'GET'
+        })
+            .then(res =>{
+                if(res.ok)
+                    return res.json();
+                else
+                    return res.json().then(err => { throw err; })})
+            .then(res => {
+                console.log(res.data);
+                this.setState({
+                    excel:res.data
+                });
+            })
+            .catch((err) => {
+                let message = err;
+                if(err.message && err.message!=='')
+                    message = err.message;
+                console.log(message);
+            });
     }
     render() {
+        let ExcelInput = null;
+        if(this.state.parsed_excel && this.state.parsed_excel.length>0) {
+            const properties = [];
+            for(let i in this.state.parsed_excel[0])
+                properties.push(i);
+            ExcelInput =(
+                <div>
+                    <a href='#' onClick={this.saveExcel}>엑셀 저장</a>
+                    <p>{this.state.parsed_excel.length} rows</p>
+                    <table>
+                        <thead>
+                        <tr>
+                            {properties.map((p) => {return <th key={p}>{p}</th>})}
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {this.state.parsed_excel.map((e) => {
+                            let i = 0;
+                            return(
+                                <tr>
+                                    {properties.map((p)=> {
+                                        let data = e[p];
+                                        if(p==='show_date')
+                                            data = new Date(data).toLocaleString();
+                                        if(p==='seat_position' && (data && data!==''))
+                                            data = data.floor+'층 '+data.col+'열 '+data.num+'번';
+                                        if(!data || data==='')
+                                            data = 'NULL';
+                                        return <td key={i++}>{data}</td>
+                                    })}
+                                </tr>
+                            )
+                        })}
+                        </tbody>
+                    </table>
+                </div>
+            )
+        }
         return (
             <div>
-                <h1>{this.state.status}</h1>
-                <form onSubmit={this.handleSubmit}>
+                <div>
+                    {this.state.theater.map((t) => {
+                        return <a href='#' key={t._id} onClick={()=>{this.setState({theater_picked:t})}}>{t.name}</a>;
+                    })}
+                </div>
+                <div>
+                    {this.state.show.map((t) => {
+                        return <a href='#' key={t._id} onClick={()=>{this.setState({show_picked:t})}}>{t.name}</a>;
+                    })}
+                </div>
+                <div>
+                    {this.state.excel.map((t) => {
+                        return <a href='#' key={t._id} onClick={()=>{this.setState({excel_picked:t})}}>{t.source}</a>;
+                    })}
+                </div>
+                <div>
+                    <p>{this.state.theater_picked ? this.state.theater_picked.name+' '+this.state.theater_picked._id : null}</p>
+                    <p>{this.state.show_picked ? this.state.show_picked.name+' '+this.state.show_picked._id : null}</p>
+                    <p>{this.state.excel_picked ? this.state.excel_picked.source+' '+this.state.excel_picked._id : null}</p>
+                </div>
+                <form>
                     <label>
-                        쿠팡 엑셀 예약 파싱 테스트
+                        엑셀 예약 파싱 테스트
                         <input type='file' onChange={this.handleChange}/>
                     </label>
                     <input type='submit' value='업로드'/>
                 </form>
+                {ExcelInput}
             </div>
         )
     }

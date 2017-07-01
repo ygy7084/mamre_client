@@ -22,14 +22,22 @@ class API_test_Excel_Show extends React.Component {
             method : 'POST',
             body : data
         })
-            .then(res => res.json())
+            .then(res =>{
+                if(res.ok)
+                    return res.json();
+                else
+                    return res.json().then(err => { throw err; })})
             .then(res => {
+                console.log(res.data);
                 this.setState({
-                    parsed_excel : res
+                    parsed_excel : res.data
                 });
             })
             .catch((err) => {
-                console.log(err);
+                let message = err;
+                if(err.message && err.message!=='')
+                    message = err.message;
+                console.log(message);
             });
     }
     uploadExcel_change(e) {
@@ -46,38 +54,61 @@ class API_test_Excel_Show extends React.Component {
             headers : {'Content-Type' : 'application/json'},
             body : JSON.stringify(data)
         })
-            .then(res => res.json())
+            .then(res =>{
+                if(res.ok)
+                    return res.json();
+                else
+                    return res.json().then(err => { throw err; })})
             .then(res => {
-                console.log(res);
+                console.log(res.data);
             })
             .catch((err) => {
-                console.log(err);
+                let message = err;
+                if(err.message && err.message!=='')
+                    message = err.message;
+                console.log(message);
             });
     }
     componentWillMount() {
         fetch('/api/theater/read/all',{
             method : 'GET'
         })
-            .then(res => res.json())
+            .then(res =>{
+                if(res.ok)
+                    return res.json();
+                else
+                    return res.json().then(err => { throw err; })})
             .then(res => {
+                console.log(res.data);
                 this.setState({
-                    theater:res.theater
+                    theater:res.data
                 });
             })
             .catch((err) => {
-                console.log(err);
+                let message = err;
+                if(err.message && err.message!=='')
+                    message = err.message;
+                console.log(message);
             });
         fetch('/api/show/read/all',{
             method : 'GET'
         })
-            .then(res => res.json())
+            .then(res =>{
+                if(res.ok)
+                    return res.json();
+                else
+                    return res.json().then(err => { throw err; })})
             .then(res => {
+                console.log(res.data);
                 this.setState({
-                    show:res.show
+                    show:res.data
                 });
             })
             .catch((err) => {
-                console.log(err);
+                let message = err;
+                if(err.message && err.message!=='')
+                    message = err.message;
+                console.log(message);
             });
     }
     render() {
@@ -93,14 +124,21 @@ class API_test_Excel_Show extends React.Component {
                     <table>
                         <thead>
                         <tr>
-                            {properties.map((p) => {return <th>{p}</th>})}
+                            {properties.map((p) => {return <th key={p}>{p}</th>})}
                         </tr>
                         </thead>
                         <tbody>
                         {this.state.parsed_excel.map((e) => {
+                            let i=0;
                             return(
                                 <tr>
-                                    {properties.map((p)=> {return <td>{e[p]}</td>})}
+                                    {properties.map((p)=> {
+                                        let data = e[p];
+                                        if(p==='date')
+                                            data = new Date(data).toLocaleString();
+                                        if(!data || data==='')
+                                            data = 'NULL';
+                                        return <td key={i++}>{data}</td>})}
                                 </tr>
                             )
                         })}

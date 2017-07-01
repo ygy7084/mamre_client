@@ -36,12 +36,19 @@ class API_test_CRUD_Show extends React.Component {
             headers : {'Content-Type' : 'application/json'},
             body : JSON.stringify(data)
         })
-            .then(res => res.json())
+            .then(res =>{
+                if(res.ok)
+                    return res.json();
+                else
+                    return res.json().then(err => { throw err; })})
             .then(res => {
-                console.log(res);
+                console.log(res.data);
             })
             .catch((err) => {
-                console.log(err);
+                let message = err;
+                if(err.message && err.message!=='')
+                    message = err.message;
+                console.log(message);
             });
     }
     deleteChange(e) {
@@ -59,25 +66,39 @@ class API_test_CRUD_Show extends React.Component {
             headers : {'Content-Type' : 'application/json'},
             body : JSON.stringify(data)
         })
-            .then(res => res.json())
+            .then(res =>{
+                if(res.ok)
+                    return res.json();
+                else
+                    return res.json().then(err => { throw err; })})
             .then(res => {
-                console.log(res);
+                console.log(res.data);
             })
             .catch((err) => {
-                console.log(err);
+                let message = err;
+                if(err.message && err.message!=='')
+                    message = err.message;
+                console.log(message);
             });
     }
     read() {
         return fetch('/api/excel/read', {
             method : 'GET'
         })
-            .then(res => res.json())
+            .then(res =>{
+                if(res.ok)
+                    return res.json();
+                else
+                    return res.json().then(err => { throw err; })})
             .then(res => {
-                console.log(res);
-                this.setState({excel:res.excel});
+                console.log(res.data);
+                this.setState({excel:res.data});
             })
             .catch((err) => {
-                console.log(err);
+                let message = err;
+                if(err.message && err.message!=='')
+                    message = err.message;
+                console.log(message);
             });
     }
     update() {
@@ -87,28 +108,32 @@ class API_test_CRUD_Show extends React.Component {
                 parsing_rule:this.state.excel_picked_update.parsing_rule
             }
         };
-        console.log(this.state.excel_picked_update);
-        console.log(data);
         return fetch('/api/excel/update', {
             method : 'PUT',
             headers : {'Content-Type' : 'application/json'},
             body : JSON.stringify(data)
         })
-            .then(res => res.json())
+            .then(res =>{
+                if(res.ok)
+                    return res.json();
+                else
+                    return res.json().then(err => { throw err; })})
             .then(res => {
-                console.log(res);
+                console.log(res.data);
                 this.setState({
-                    excel:res.excel,
                     excel_picked:null,
                     excel_picked_update:null});
             })
             .catch((err) => {
-                console.log(err);
+                let message = err;
+                if(err.message && err.message!=='')
+                    message = err.message;
+                console.log(message);
             });
     }
     setDefault() {
-        this.setState({
-            excel_picked_update : this.state.excel_picked
+        this.setState((state) => {
+            state.excel_picked_update = JSON.parse(JSON.stringify(state.excel_picked));
         });
     }
     updateChange_Code(e) {
@@ -119,13 +144,9 @@ class API_test_CRUD_Show extends React.Component {
             parsing_rule[e.target.name] = {};
 
         parsing_rule[e.target.name]['code'] = e.target.value;
-        this.setState({
-            excel_picked_update : {
-                parsing_rule : parsing_rule
-            }
+        this.setState((state) => {
+            state.excel_picked_update.parsing_rule = parsing_rule
         });
-
-        console.log(this.state.excel_picked_update.parsing_rule);
     }
     updateChange_Field(e) {
         let parsing_rule = this.state.excel_picked_update.parsing_rule;
@@ -135,12 +156,9 @@ class API_test_CRUD_Show extends React.Component {
             parsing_rule[e.target.name] = {};
 
         parsing_rule[e.target.name]['field'] = e.target.value;
-        this.setState({
-            excel_picked_update : {
-                parsing_rule : parsing_rule
-            }
+        this.setState((state) => {
+            state.excel_picked_update.parsing_rule = parsing_rule
         });
-        console.log(this.state.excel_picked_update.parsing_rule);
     }
     render() {
         let excel = null;
@@ -149,7 +167,7 @@ class API_test_CRUD_Show extends React.Component {
                 (
                 <div>
                     {this.state.excel.map((e) => {
-                        return <a href='#' key={e._id} onClick={()=>{this.setState({excel_picked:e, excel_picked_update:e})}}>{e.source}</a>;
+                        return <a href='#' key={e._id} onClick={()=>{this.setState({excel_picked:e, excel_picked_update:JSON.parse(JSON.stringify(e))})}}>{e.source}</a>;
                     })}
                 </div>
                 )
@@ -247,7 +265,7 @@ class API_test_CRUD_Show extends React.Component {
                                             <input onChange={this.updateChange_Field} name={p.rule} type='text' value={field}/>
                                         </div>
                                         <div>
-                                            <textarea onChange={this.updateChange_Code} name={p.rule} style={{width:'500px', heigth:'300px', overflowY: 'scroll'}} value={code}/>
+                                            <textarea onChange={this.updateChange_Code} name={p.rule} style={{width:'400px', height:'200px', overflowY: 'scroll'}} value={code}/>
                                         </div>
 
                                     </div>
