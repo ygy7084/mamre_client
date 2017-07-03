@@ -172,7 +172,7 @@ class API_test_CRUD_Show extends React.Component {
                 </div>
                 )
         }
-        let excel_picked = null;
+        let excel_picked = undefined;
         if(this.state.excel_picked && this.state.excel_picked.length!==0) {
             const parsing_rule = [
                 {

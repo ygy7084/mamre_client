@@ -75,7 +75,7 @@ class API_test_CRUD_Theater extends React.Component {
             });
     }
     read() {
-        return fetch('/api/theater/read/all', {
+        return fetch('/api/theater/read', {
             method : 'GET'
         })
             .then(res =>{

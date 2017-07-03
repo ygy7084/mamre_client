@@ -5,6 +5,8 @@ import API_test_CRUD_Theater from './API_test_CRUD_Theater';
 import API_test_CRUD_Show from './API_test_CRUD_Show'
 import API_test_CRUD_Showtime from './API_test_CRUD_Showtime';
 import API_test_CRUD_Excel from './API_test_CRUD_Excel';
+import API_test_CRUD_Reservation from './API_test_CRUD_Reservation';
+import API_test_Crawler from './API_test_Crawler';
 
 export {
     API_test_Excel_Reservation,
@@ -13,5 +15,7 @@ export {
     API_test_CRUD_Theater,
     API_test_CRUD_Show,
     API_test_CRUD_Showtime,
-    API_test_CRUD_Excel
+    API_test_CRUD_Excel,
+    API_test_CRUD_Reservation,
+    API_test_Crawler
 };

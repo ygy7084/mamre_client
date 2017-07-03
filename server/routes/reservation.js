@@ -1,72 +1,8 @@
 import express from 'express';
-import {Reservation} from '../models';
+import {Reservation, Theater, Showtime} from '../models';
 
 const router = express.Router();
 
-// const getReverseOfCrawledData = (array, theater_id) => {
-//     Theater.find({_id:theater_id}).lean().exec((err, results) => {
-//         if(err) {
-//             console.error(err);
-//             return err;
-//         }
-//         let theater = results[0];
-//
-//         const diff = (A, B) => {
-//             let arr = [];
-//             for (l of A) {
-//                 B.indexOf(l) < 0 ? arr.push(JSON.parse(l)) : null
-//             }
-//             return arr;
-//         };
-//         let tempA = [];
-//         let tempB = [];
-//         for(let i=0;i<theater.seats.length;i++) {
-//             let obj = {
-//                 floor : theater_id.
-//             }
-//         }
-//
-//     })
-// };
-
-//예매 내역을 만든다.
-router.post('/create/crawler', (req, res) => {
-    /*
-    req.body : {
-        show : ObjectID,
-        theater : ObjectID,
-        date : Date
-    }
-     */
-    model_show.aggregate([
-        {$match: {_id: toMongoID(show_id)}},
-        {$project: {
-            schedule: {$filter: {
-                input: '$schedule',
-                as: 'schedule',
-                cond: { $and : [
-                    {$eq: ['$$schedule.theater', toMongoID(theater_id)]},
-                    {$eq: ['$$schedule.date', date]}]
-                }},
-            }}}
-    ]).exec((err, results) => {
-        if(err)
-            console.error(err);
-        console.log(results[0].schedule[0].url);
-    });
-    const reservation = new Reservation(req.body);
-    reservation.save((err, results) => {
-        if(err) {
-            console.error(err);
-            return res.status(500).json({message:'Reservation Create Error - '+err.message});
-        }
-        else {
-            return res.json({
-                data:results
-            });
-        }
-    });
-});
 router.post('/create', (req, res) => {
     const reservation = new Reservation(req.body);
     reservation.save((err, results) => {
@@ -82,18 +18,147 @@ router.post('/create', (req, res) => {
     });
 });
 
+router.post('/createMany', (req, res) => {
+    const inputs = req.body;
+    const theater = inputs[0].theater;
+    const show = inputs[0].show;
+    //inputs 안의 모든 데이터의 theater 와 show는 각각 같은 값으로 이뤄져야 함
+
+    let bulk = [];
+    let wrong_data = [];
+
+    Showtime.find({theater:theater, show:show}).exec((err, results) => {
+        const schedule = results[0].schedule.map((e) => {
+            return new Date(e.date).toLocaleString();
+        });
+
+        for (let o of inputs) {
+            if(schedule.indexOf(new Date(o.show_date).toLocaleString())<0)
+                wrong_data.push(o);
+            else {
+                if (o.seat_position)
+                    bulk.push({
+                        //source,show_date,show,theater,seat_position 없으면 insert 있으면 nothing
+                        updateOne: {
+                            filter: {
+                                source: o.source,
+                                show_date: new Date(o.show_date),
+                                show: o.show,
+                                theater: o.theater,
+                                seat_position: o.seat_position
+                            },
+                            update: o,
+                            upsert: true
+                        },
+                    });
+                else
+                    bulk.push({
+                        //source,show_date,ticket_code 없으면 insert 있으면 nothing
+                        updateOne: {
+                            filter: {
+                                source: o.source,
+                                show_date: new Date(o.show_date),
+                                ticket_code: o.ticket_code
+                            },
+                            update: o,
+                            upsert: true
+                        }
+                    })
+            }
+        }
+
+        if(bulk.length !== 0) {
+            Reservation.bulkWrite(bulk).then((results) => {
+                const changed_index = Object.keys(results.upsertedIds);
+
+                let bulk = [];
+                for (let i of changed_index) {
+                    bulk.push({
+                        updateOne: {
+                            filter: {
+                                show: inputs[i].show, theater: inputs[i].theater,
+                                'schedule.date': new Date(inputs[i].show_date)
+                            },
+                            update: {$addToSet: {"schedule.$.reservations": {_id: results.upsertedIds[i]}}}
+                        }
+                    })
+                }
+
+                if(bulk.length!==0) {
+                    Showtime.bulkWrite(bulk).then((results) => {
+                        return res.json({
+                            data: {
+                                wrong_data: wrong_data
+                            }
+                        })
+                    });
+                }
+                else
+                    return res.json({
+                        data: {
+                            wrong_data: wrong_data
+                        }
+                    })
+            });
+        }
+        else {
+            return res.json({
+                data: {
+                    wrong_data : wrong_data
+                }
+            })
+        }
+    });
+});
+
 //예매 내역을 조회한다.
-router.get('/read/:id', (req, res) => {
-
-    //source 파라미터가 all일 경우 모든 데이터 조회
-    let query;
-    if(req.params.source==='all')
-        query = {};
-    else
-        query = {_id:req.params.id};
-
-    //lean() -> 조회 속도 빠르게 하기 위함
+router.get('/read/theater/:theater/show/:show/date/:date', (req, res) => {
+    const query = {
+        theater : req.params.theater,
+        show : req.params.show,
+        show_date : new Date(parseInt(req.params.date))
+    };
     Reservation.find(query).lean().exec((err, results) => {
+        if(err) {
+            console.error(err);
+            return res.status(500).json({message:'Reservation Read Error - '+err.message});
+        }
+        else {
+            return res.json({
+                data : results
+            });
+        }
+    });
+});
+
+//예매 내역을 조회한다.
+router.get('/read/:key_name/:key_value', (req, res) => {
+    const key_name = req.params.key_name;
+    const key_value = req.params.key_value;
+
+    const keys = ['_id'];
+
+    if(keys.indexOf(key_name) < 0)
+        return res.status(500).json({message:'Reservation Read Error - '+'잘못된 key 이름을 입력하셨습니다 : '+key_name});
+
+    let query = {};
+    query[key_name] = key_value;
+
+    Reservation.find(query).lean().exec((err, results) => {
+        if(err) {
+            console.error(err);
+            return res.status(500).json({message:'Reservation Read Error - '+err.message});
+        }
+        else {
+            return res.json({
+                data : results
+            });
+        }
+    });
+});
+//예매 내역을 조회한다.
+router.get('/read', (req, res) => {
+    Reservation.find({}).lean().exec((err, results) => {
         if(err) {
             console.error(err);
             return res.status(500).json({message:'Reservation Read Error - '+err.message});

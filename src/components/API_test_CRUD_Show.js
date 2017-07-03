@@ -75,7 +75,7 @@ class API_test_CRUD_Show extends React.Component {
             });
     }
     read() {
-        return fetch('/api/show/read/all', {
+        return fetch('/api/show/read', {
             method : 'GET'
         })
             .then(res =>{

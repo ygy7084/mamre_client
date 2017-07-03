@@ -14,6 +14,7 @@ class API_test_Excel_Reservation extends React.Component {
         };
         this.uploadFile = this.uploadFile.bind(this);
         this.handleChange = this.handleChange.bind(this);
+        this.saveExcel = this.saveExcel.bind(this);
     }
     uploadFile(file, url) {
 
@@ -46,7 +47,7 @@ class API_test_Excel_Reservation extends React.Component {
         this.uploadFile(e.target.files[0], '/api/excel/parse/reservation');
     }
     componentWillMount() {
-        fetch('/api/theater/read/all',{
+        fetch('/api/theater/read',{
             method : 'GET'
         })
             .then(res =>{
@@ -66,7 +67,7 @@ class API_test_Excel_Reservation extends React.Component {
                     message = err.message;
                 console.log(message);
             });
-        fetch('/api/show/read/all',{
+        fetch('/api/show/read',{
             method : 'GET'
         })
             .then(res =>{
@@ -99,6 +100,45 @@ class API_test_Excel_Reservation extends React.Component {
                 this.setState({
                     excel:res.data
                 });
+            })
+            .catch((err) => {
+                let message = err;
+                if(err.message && err.message!=='')
+                    message = err.message;
+                console.log(message);
+            });
+    }
+    saveExcel() {
+        let data = [];
+        for(let p of this.state.parsed_excel) {
+            let reservation = {
+                input_date: new Date(),
+                source: this.state.excel_picked.source,
+                customer_name: p.customer_name,
+                customer_phone: p.customer_phone,
+                show_date: p.show_date,
+                seat_class: p.seat_class,
+                seat_position: p.seat_position,
+                ticket_quantity: p.ticket_quantity,
+                ticket_code: p.ticket_code,
+                ticket_price: p.ticket_price,
+                theater: this.state.theater_picked._id,
+                show: this.state.show_picked._id
+            };
+            data.push(reservation);
+        }
+        return fetch('/api/reservation/createMany',{
+            method : 'POST',
+            headers : {'Content-Type' : 'application/json'},
+            body : JSON.stringify(data)
+        })
+            .then(res =>{
+                if(res.ok)
+                    return res.json();
+                else
+                    return res.json().then(err => { throw err; })})
+            .then(res => {
+                console.log(res.data);
             })
             .catch((err) => {
                 let message = err;

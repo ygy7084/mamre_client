@@ -17,7 +17,7 @@ const Showtime = new Schema({
         _id:false,
         date : Date,
         url : String,
-        reservations:[{type : Schema.Types.ObjectId, ref:'reservation'}]
+        reservations:[{_id:{type : Schema.Types.ObjectId, ref:'reservation'}}]
     }]
 });
 

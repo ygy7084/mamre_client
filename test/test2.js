@@ -1,9 +1,8 @@
-var p1 = Promise.resolve(3);
-var p2 = 1337;
-var p3 = new Promise(function(resolve, reject) {
-    setTimeout(resolve, 100, "foo");
-});
+let arr = [
+    {a:1,b:2},
+    {a:2,b:3}
+];
 
-Promise.all([p1, p2, p3]).then(function(values) {
-    console.log(values); // [3, 1337, "foo"]
-});
+console.log(arr.find((e) => {
+    return e.a===0
+}));

@@ -117,9 +117,9 @@ router.post('/parse/reservation', upload.single('file'), (req, res) => {
      show_time_hour,        //필수 - 공연 시간
      show_time_minute,      //없을 시 0 - 공연 분
      seat_class,            //필수 - 좌석 등급
-     seat_position_floor,   //없을 시 null - 좌석 층수
-     seat_position_col,     //없을 시 null - 좌석 열
-     seat_position_num,     //없을 시 null - 좌석 번호
+     seat_position_floor,   //없을 시 undefined - 좌석 층수
+     seat_position_col,     //없을 시 undefined - 좌석 열
+     seat_position_num,     //없을 시 undefined - 좌석 번호
      ticket_quantity,       //없을 시 1 - 티켓 수량
      ticket_code,           //필수 - 예약 번호, 주문 번호, 티켓 번호 등 각 사이트별 코드
      ticket_price           //필수 - 티켓 가격
@@ -179,28 +179,32 @@ router.post('/parse/reservation', upload.single('file'), (req, res) => {
             parsed_rows[row] = {};
         }
 
-        //파싱 진행
-        for(let i in excel.parsing_rule) {
-            if(excel.parsing_rule[i] && excel.parsing_rule[i].field && excel.parsing_rule[i].c){
+        try {
+            //파싱 진행
+            for (let i in excel.parsing_rule) {
+                if (excel.parsing_rule[i] && excel.parsing_rule[i].field && excel.parsing_rule[i].c) {
 
-                for(let row = field_row+1;row<=Excel_sheet_range.e.r;row++) {
-                    //셀의 내용 접근
-                    let cell_address = XLSX.utils.encode_cell({c: excel.parsing_rule[i].c,r: row});
+                    for (let row = field_row + 1; row <= Excel_sheet_range.e.r; row++) {
+                        //셀의 내용 접근
+                        let cell_address = XLSX.utils.encode_cell({c: excel.parsing_rule[i].c, r: row});
 
-                    //v는 셀의 내용의 raw 데이터
-                    let cell_data = Excel_sheet[cell_address].v;
+                        //v는 셀의 내용의 raw 데이터
+                        let cell_data = Excel_sheet[cell_address].v;
 
-                    //정규식을 이용한 파싱 직전에 셀의 내용에서 공백과 빈칸을 전부 없앤다.
-                    if(typeof cell_data === 'string')
-                        cell_data = cell_data.replace(/\s/gi, "");
+                        //정규식을 이용한 파싱 직전에 셀의 내용에서 공백과 빈칸을 전부 없앤다.
+                        if (typeof cell_data === 'string')
+                            cell_data = cell_data.replace(/\s/gi, "");
 
-                    //정규식을 이용한 파싱 (정규식 코드 없으면 셀 내용 변경 안함)
-                    if(excel.parsing_rule[i].code) {
-                        cell_data = excel.parsing_rule[i].code(cell_data);
+                        //정규식을 이용한 파싱 (정규식 코드 없으면 셀 내용 변경 안함)
+                        if (excel.parsing_rule[i].code) {
+                            cell_data = excel.parsing_rule[i].code(cell_data);
+                        }
+                        parsed_rows[row][i] = cell_data;
                     }
-                    parsed_rows[row][i] = cell_data;
                 }
             }
+        }catch(e) {
+            return res.status(400).json({message: 'Excel Upload Error - '+'파싱 코드에 문제가 있습니다.'});
         }
 
         //<4. 파싱되지 않은 값에 기본값 대입>
@@ -235,15 +239,15 @@ router.post('/parse/reservation', upload.single('file'), (req, res) => {
             }
             //층수 초기화
             if(!(o['seat_position_floor'])) {
-                o['seat_position_floor'] = null;
+                o['seat_position_floor'] = undefined;
             }
             // 열 초기화
             if(!(o['seat_position_col'])) {
-                o['seat_position_col'] = null;
+                o['seat_position_col'] = undefined;
             }
             // 번호 초기화
             if(!(o['seat_position_num'])) {
-                o['seat_position_num'] = null;
+                o['seat_position_num'] = undefined;
             }
             // 티켓 수량 초기화
             if(!(o['ticket_quantity'])) {
@@ -260,7 +264,7 @@ router.post('/parse/reservation', upload.single('file'), (req, res) => {
          customer_phone,      //고객 번호(뒷 4자리)
          show_date : '',      //공연 날짜 및 시간 (DATE 객체)
          seat_class : '',     //좌석 등급
-         seat_position : {    //좌석 위치 -> 없을 시 null
+         seat_position : {    //좌석 위치 -> 없을 시 undefined
          floor,
          col,
          num
@@ -287,7 +291,7 @@ router.post('/parse/reservation', upload.single('file'), (req, res) => {
             );
             output.seat_class = row.seat_class;
             if(!row.seat_position_floor && !row.seat_position_col && !row.seat_position_num)
-                output.seat_position = null;
+                output.seat_position = undefined;
             else
                 output.seat_position = {
                     floor : row.seat_position_floor,
@@ -331,7 +335,7 @@ router.get('/read/:key_name/:key_value', (req, res) => {
     const key_name = req.params.key_name;
     const key_value = req.params.key_value;
 
-    const keys = ['source'];
+    const keys = ['source', '_id'];
     if(keys.indexOf(key_name) < 0)
         return res.status(500).json({message:'Excel Read Error - '+'잘못된 key 이름을 입력하셨습니다 : '+key_name});
 
@@ -370,7 +374,6 @@ router.get('/read', (req, res) => {
 
 //엑셀 파싱 룰을 수정한다.
 router.put('/update', (req, res) => {
-    console.log(req.body);
     Excel.update({_id:req.body._id}, {$set: req.body.update}, (err, results) => {
         if(err) {
             console.error(err);

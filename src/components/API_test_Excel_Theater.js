@@ -67,7 +67,7 @@ class API_test_Excel_Theater extends React.Component {
             });
     }
     componentWillMount() {
-        fetch('/api/theater/read/all',{
+        fetch('/api/theater/read',{
             method : 'GET'
         })
             .then(res =>{

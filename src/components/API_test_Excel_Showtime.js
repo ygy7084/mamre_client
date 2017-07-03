@@ -70,7 +70,7 @@ class API_test_Excel_Show extends React.Component {
             });
     }
     componentWillMount() {
-        fetch('/api/theater/read/all',{
+        fetch('/api/theater/read',{
             method : 'GET'
         })
             .then(res =>{
@@ -90,7 +90,7 @@ class API_test_Excel_Show extends React.Component {
                     message = err.message;
                 console.log(message);
             });
-        fetch('/api/show/read/all',{
+        fetch('/api/show/read',{
             method : 'GET'
         })
             .then(res =>{

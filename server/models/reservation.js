@@ -27,9 +27,9 @@ const Reservation = new Schema({
     show_date : Date,
     seat_class : String,
     seat_position : {
-        floor : Number,
-        col : Number,
-        num : Number
+        floor : String,
+        col : String,
+        num : String
     },
     ticket_quantity : Number,
     ticket_code : String,
@@ -37,6 +37,8 @@ const Reservation = new Schema({
     theater : {type : Schema.Types.ObjectId, ref:'theater'},
     show : {type : Schema.Types.ObjectId, ref:'show'}
 });
+
+Reservation.index({source:1, show_date:1, ticket_code:1}, {unique:true});
 
 const model = mongoose.model('reservation', Reservation);
 
