@@ -1,0 +1,148 @@
+body {
+    background: rgb(218,218,218)
+}
+
+.right-wrapper {
+    text-align: center;
+    width:450px;
+    margin: 0;
+}
+.phonelabel {
+    margin-top:7px;
+    width:200px;
+    float: left;
+    text-align: center;
+}
+.phone-wrapper {
+    text-align: right;
+    margin-bottom: 8px;
+}
+.phone-wrapper button {
+    height: 30px;
+}
+.summary {
+    background:white;
+}
+.seatnum_wrapper {
+    margin-top: 10px;
+    margin-bottom :10px;
+}
+.seatnum_label {
+    float: left;
+    width:80px;
+}
+.seatnum_output {
+    display: inline-block;
+    background: rgb(245,245,245);
+    width:370px;
+
+}
+thead, tbody { display: block; }
+
+tbody {
+    max-height: 320px;    /* Just for the demo          */
+    overflow-y: auto;  /* Trigger vertical scroll    */
+    overflow-x: hidden;  /* Hide the horizontal scroll */
+}
+
+table {
+    border:red;
+    padding: 0 !important;
+}
+table td{
+    background: rgb(245,245,245);
+    height:25px;
+    padding-top:0;
+    width:120px;
+}
+table tr{
+    padding-top:0;
+}
+table th{
+    width:120px;
+}
+.tableheader{
+    background : rgb(74,83,109);
+    color:white;
+    text-align: center;
+}
+.tableheader th{
+    text-align: center;
+    font-weight: normal;
+}
+.table td {
+    padding: 0;
+}
+.table-condensed>thead>tr>td, .table-condensed>tbody>tr>td, .table-condensed>tfoot>tr>td{
+    padding: 0;
+}
+.table {
+    margin-bottom: 0;
+}
+.finalrow {
+    margin-bottom:5px;
+    padding:5px;
+    background: rgb(92,92,92);
+    color:white;
+}
+.finalrow_label {
+     float:left;
+    margin:auto;
+    width:70%;
+ }
+.finalrow_value {
+    display:inline-block;
+    width:30%;
+}
+.re {
+    background: rgb(35,57,119);
+    border:0;
+    height: 45px;
+    width:130px;
+}
+.pre {
+    background: rgb(35,57,119);
+    border:0;
+    width:130px;
+    height: 45px;
+
+}
+.now {
+    background: rgb(146,39,143);
+    border:0;
+    width:180px;
+    height: 45px;
+}
+
+
+
+.react-datepicker {
+    font-size: 1em;
+}
+.react-datepicker__header {
+    padding-top: 0.8em;
+}
+.react-datepicker__month {
+    margin: 0.4em 1em;
+}
+.react-datepicker__day-name, .react-datepicker__day {
+    width: 1.9em;
+    line-height: 1.9em;
+    margin: 0.166em;
+}
+.react-datepicker__current-month {
+    font-size: 1em;
+}
+.react-datepicker__navigation {
+    top: 1em;
+    line-height: 1.7em;
+    border: 0.45em solid transparent;
+}
+.react-datepicker__navigation--previous {
+    border-right-color: #ccc;
+    left: 1em;
+}
+.react-datepicker__navigation--next {
+    border-left-color: #ccc;
+    right: 1em;
+}

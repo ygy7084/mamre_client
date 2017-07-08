@@ -49,11 +49,10 @@ router.get('/showtime/:showtime/date/:date', (req, res) => {
                         //mongoose documnet to javascript object
                         let o = JSON.parse(JSON.stringify(excel_seat._id));
 
-                        if(o.seat_position) {
+                        if(o && o.seat_position) {
                             excel_seats.push(o.seat_position);
                         }
                     });
-                    console.log(excel_seats);
 
                     const crawled_seats = response.data;
 
@@ -73,12 +72,11 @@ router.get('/showtime/:showtime/date/:date', (req, res) => {
 
                     }
 
-                    not_reserved_seats = crawled_seats.filter((cs) => {
-                        return excel_seats.filter((es) => {
-                                return cs.col===es.col && cs.floor === es.floor && cs.num === es.num
+                    not_reserved_seats = theater_seats.filter((ts) => {
+                        return reserved_seats.filter((rs) => {
+                                return ts.col===rs.col && ts.floor === rs.floor && ts.num === rs.num
                             }).length===0;
                     });
-
                     return res.json({
                         data : {
                             reserved_seats,

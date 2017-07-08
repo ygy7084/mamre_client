@@ -61,6 +61,31 @@ router.get('/read', (req, res) => {
     });
 });
 
+router.put('/update/coords', (req, res) => {
+    Theater.update({
+        _id:req.body._id,
+        seats : {
+            "$elemMatch" : {
+                floor : req.body.floor,
+                num : req.body.num,
+                col : req.body.col
+            }
+        }
+        }, {$set:{
+            "seats.$.x":req.body.x,
+            "seats.$.y":req.body.y}}, (err,results) => {
+        if(err) {
+            console.error(err);
+            return res.status(500).json({message:'Theater Modify Error - '+err.message});
+        }
+        else {
+            return res.json({
+                data : results
+            });
+        }
+    })
+});
+
 //공연장을 수정한다.
 router.put('/update', (req, res) => {
     //공연장의 좌석 배치를 수정한다.

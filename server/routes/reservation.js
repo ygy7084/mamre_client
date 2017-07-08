@@ -1,4 +1,5 @@
 import express from 'express';
+import mongoose from 'mongoose';
 import {Reservation, Theater, Showtime} from '../models';
 
 const router = express.Router();
@@ -18,6 +19,37 @@ router.post('/create', (req, res) => {
     });
 });
 
+router.post('/ticketting', (req, res) => {
+
+    //inputs 안의 모든 데이터의 theater 와 show는 각각 같은 값으로 이뤄져야 함
+
+    let bulk = [];
+    let wrong_data = [];
+
+        for (let o of req.body) {
+            bulk.push({
+                //source,show_date,show,theater,seat_position 없으면 insert 있으면 nothing
+                updateOne: {
+                    filter: {
+                        _id : o._id
+                    },
+                    update: {print:true},
+                    upsert: true
+                },
+            });
+
+        }
+        if(bulk.length !== 0) {
+            Reservation.bulkWrite(bulk).then((results) => {
+
+                return res.json({
+                    data: {
+                        wrong_data : wrong_data
+                    }
+                })
+            });
+        }
+});
 router.post('/createMany', (req, res) => {
     const inputs = req.body;
     const theater = inputs[0].theater;
@@ -45,7 +77,8 @@ router.post('/createMany', (req, res) => {
                                 show_date: new Date(o.show_date),
                                 show: o.show,
                                 theater: o.theater,
-                                seat_position: o.seat_position
+                                seat_position: o.seat_position,
+                                ticket_code: o.ticket_code ? o.ticket_code : mongoose.Types.ObjectId()
                             },
                             update: o,
                             upsert: true
@@ -58,7 +91,7 @@ router.post('/createMany', (req, res) => {
                             filter: {
                                 source: o.source,
                                 show_date: new Date(o.show_date),
-                                ticket_code: o.ticket_code
+                                ticket_code: o.ticket_code ? o.ticket_code : mongoose.Types.ObjectId()
                             },
                             update: o,
                             upsert: true

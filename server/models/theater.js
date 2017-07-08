@@ -17,7 +17,9 @@ const Theater = new Schema({
             floor:String,
             col:String,
             num:String,
-            seat_class:String
+            seat_class:String,
+            x : Number,
+            y : Number
         }
     ]
 });

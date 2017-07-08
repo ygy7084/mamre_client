@@ -35,7 +35,8 @@ const Reservation = new Schema({
     ticket_code : String,
     ticket_price : Number,
     theater : {type : Schema.Types.ObjectId, ref:'theater'},
-    show : {type : Schema.Types.ObjectId, ref:'show'}
+    show : {type : Schema.Types.ObjectId, ref:'show'},
+    print : Boolean
 });
 
 Reservation.index({source:1, show_date:1, ticket_code:1}, {unique:true});

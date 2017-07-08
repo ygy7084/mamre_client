@@ -9,7 +9,8 @@ module.exports = {
         'whatwg-fetch',
         'react',
         'react-dom',
-        './index.js'],
+        './index.js',
+        './style.css'],
     output : {
         path: resolve(__dirname, 'public'),
         filename: 'bundle.js',
@@ -27,7 +28,7 @@ module.exports = {
             },
             {
                 test: /\.css$/,
-                loader : 'style!css-loader'
+                loader : 'style-loader!css-loader'
             },
             {
                 test: /\.(png|jpg|gif|woff|woff2|eot|ttf|svg)$/,

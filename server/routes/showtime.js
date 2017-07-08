@@ -1,6 +1,6 @@
 import express from 'express';
 import mongoose from 'mongoose';
-import {Showtime} from '../models';
+import {Showtime, R} from '../models';
 import {cralwer} from './module';
 
 const router = express.Router();
@@ -71,23 +71,41 @@ router.get('/read/theater/:theater/show/:show', (req, res) => {
     });
 });
 
-router.get('/seats/showtime/:showtime/date/:date', (req, res) => {
-    const query = {
-        theater : req.params.theater,
-        show : req.params.show,
-        show_date : new Date(parseInt(req.params.date))
-    };
-    Showtime.find(query).lean().exec((err, results) => {
-        if(err) {
-            console.error(err);
-            return res.status(500).json({message:'Reservation Read Error - '+err.message});
-        }
-        else {
-            return res.json({
-                data : results
-            });
-        }
-    });
+router.get('/read/showtime/:showtime/date/:date/phone/:phone', (req, res) => {
+    // Showtime.find({_id:input.showtime})
+    //     .populate('theater')
+    //     .exec((err, results) => {
+    //         if (err) {
+    //             console.error(err);
+    //             return res.status(500).json({message: 'Crawling Data Read Error - ' + err.message});
+    //         }
+    //         if (!results || results.length < 1) {
+    //             return res.status(500).json({message: 'Crawling Data Read Error - ' + '공연일정(Showtime)을 _id로 찾을 수 없습니다.'});
+    //         }
+    //         if (!results[0].theater) {
+    //             return res.status(500).json({message: 'Crawling Data Read Error - ' + '공연장(Theater)을 _id로 찾을 수 없습니다.'});
+    //         }
+    //
+    //         const schedules = results[0].schedule;
+    //         const theater_seats = results[0].theater.seats;
+    //         let schedule;
+    //         for (let s of schedules)
+    //             if (new Date(s.date).getTime() === parseInt(req.params.date))
+    //                 schedule = s;
+    //
+    //         Reservation.populate(schedule.reservations, {path: '_id'}, (err, results) => {
+    //             let excel_seats = [];
+    //             results.forEach((excel_seat) => {
+    //
+    //                 //mongoose documnet to javascript object
+    //                 let o = JSON.parse(JSON.stringify(excel_seat._id));
+    //
+    //                 if (o.seat_position) {
+    //                     excel_seats.push(o.seat_position);
+    //                 }
+    //             });
+    //         })
+    //     }
 });
 
 //공연 일정을 조회한다.
@@ -135,8 +153,7 @@ router.get('/read', (req, res) => {
 
 //공연 일정을 수정한다.
 router.put('/update', (req, res) => {
-
-    Showtime.update({_id:req.body._id}, {$set: req.body}, (err, results) => {
+    Showtime.update({_id:req.body._id}, {$set: req.body.update}, (err, results) => {
         if(err) {
             console.error(err);
             return res.status(500).json({message:'Showtime Modify Error - '+err.message});
