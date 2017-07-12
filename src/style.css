@@ -2,3 +2,8 @@
     width:auto;
     height:auto;
 }
+.modal {
+    overflow:auto;
+}
+body { padding-right: 0 !important }
+/*부트스트랩 Modal 문제 해결*/

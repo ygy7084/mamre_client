@@ -1,5 +1,5 @@
 import React from 'react';
-import Radium from 'radium';
+import classNames from 'classnames';
 
 class Pre_ticket extends React.Component {
     constructor(props) {
@@ -11,7 +11,30 @@ class Pre_ticket extends React.Component {
         this.sourceInput_onChange = this.sourceInput_onChange.bind(this);
         this.priceInput_onChange = this.priceInput_onChange.bind(this);
         this.ticketting = this.ticketting.bind(this);
+        this.openModal = this.openModal.bind(this);
+        this.closeModal = this.closeModal.bind(this);
     }
+    componentDidMount() {
+        this.props.on ? this.openModal() : this.closeModal()
+    }
+    componentWillReceiveProps(nextProps) {
+        this.setState({
+            sourceInput:'',
+            priceInput:''
+        });
+        nextProps.on ? this.openModal() : this.closeModal()
+    }
+    openModal() {
+        $('#Pre_ticket').modal('show');
+    }
+    closeModal() {
+        this.setState({
+            sourceInput:'',
+            priceInput:''
+        });
+        $('#Pre_ticket').modal('hide');
+    }
+
     sourceInput_onChange(e) {
         this.setState({
             sourceInput:e.target.value
@@ -23,20 +46,30 @@ class Pre_ticket extends React.Component {
         })
     }
     ticketting() {
-        this.props.preTicketting(this.state.sourceInput, this.state.priceInput);
-        this.setState({
-            sourceInput : '',
-            priceInput : ''
-        });
-        $('#Pre_ticket').modal('hide');
+        if(this.state.sourceInput&&
+            this.state.sourceInput.length&&
+            this.state.priceInput&&
+            this.state.priceInput.length) {
+            this.props.preTicketting(this.state.sourceInput, this.state.priceInput);
+            this.props.onClose();
+        }
     }
     render() {
         return (
-            <div className="modal fade" id='Pre_ticket' tabIndex="-1" role="dialog">
-                <div className="modal-dialog" style ={style.dialog} role="document">
+            <div
+                className="modal fade"
+                id='Pre_ticket'
+                data-keyboard="false" //esc 금지
+                data-backdrop="static"//바깥 클릭 기본 프로시져 금지
+                tabIndex="-1">
+                <div className="modal-dialog" style ={style.dialog}>
                     <div className="modal-content" style={style.content}>
                         <div className="modal-header" style={style.header}>
-                            <button type="button" className="close"  data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                            <button type="button"
+                                    onClick={this.props.onClose}
+                                    className="close">
+                                <span>&times;</span>
+                            </button>
                             <h4 className="modal-title">사전 발권</h4>
                         </div>
                         <div className="modal-body" style={style.body}>
@@ -44,17 +77,35 @@ class Pre_ticket extends React.Component {
                                 <label>
                                     단체명
                                 </label>
-                                <input type='text' onChange={this.sourceInput_onChange} style={style.input}/>
+                                <input type='text'
+                                       style={style.input}
+                                       onChange={this.sourceInput_onChange}
+                                       value={this.state.sourceInput}/>
                             </div>
                             <div>
                             <label>
                                 판매가
                             </label>
-                                <input type='text' onChange={this.priceInput_onChange} style={style.input}/>
+                                <input type='text'
+                                       style={style.input}
+                                       onChange={this.priceInput_onChange}
+                                       value={this.state.priceInput}/>
                             </div>
                         </div>
                         <div style={style.footer}>
-                            <button type="button" style={style.submit} className="btn btn-default" data-dismiss="modal" onClick={this.ticketting}>발권</button>
+                            <button type="button"
+                                    style={style.submit}
+                                    className={classNames({
+                                        'btn':true,
+                                        'btn-default':true,
+                                        'disabled':!(this.state.sourceInput&&
+                                                     this.state.sourceInput.length&&
+                                                     this.state.priceInput&&
+                                                     this.state.priceInput.length)
+                                    })}
+                                    onClick={this.ticketting}>
+                                발권
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -96,5 +147,5 @@ const style = {
         background:'rgb(146,39,143)',
         color:'white'
     }
-}
-export default Radium(Pre_ticket);
+};
+export default Pre_ticket;

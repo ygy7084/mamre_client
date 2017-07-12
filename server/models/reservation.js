@@ -16,7 +16,8 @@ import mongoose from 'mongoose';
  ticket_code,         //예약 번호, 주문 번호, 티켓 번호 등 각 사이트별 코드
  ticket_price,        //티켓 가격
  theater,             //공연장 참조
- show                 //공연 참조
+ show,                 //공연 참조
+ printed               //발권 유무
  */
 const Schema = mongoose.Schema;
 const Reservation = new Schema({
@@ -36,7 +37,7 @@ const Reservation = new Schema({
     ticket_price : Number,
     theater : {type : Schema.Types.ObjectId, ref:'theater'},
     show : {type : Schema.Types.ObjectId, ref:'show'},
-    print : Boolean
+    printed : Boolean
 });
 
 Reservation.index({source:1, show_date:1, ticket_code:1}, {unique:true});

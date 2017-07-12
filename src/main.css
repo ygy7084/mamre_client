@@ -2,119 +2,6 @@ body {
     background: rgb(218,218,218)
 }
 
-.right-wrapper {
-    text-align: center;
-    width:450px;
-    margin: 0;
-}
-.phonelabel {
-    margin-top:7px;
-    width:200px;
-    float: left;
-    text-align: center;
-}
-.phone-wrapper {
-    text-align: right;
-    margin-bottom: 8px;
-}
-.phone-wrapper button {
-    height: 30px;
-}
-.summary {
-    background:white;
-}
-.seatnum_wrapper {
-    margin-top: 10px;
-    margin-bottom :10px;
-}
-.seatnum_label {
-    float: left;
-    width:80px;
-}
-.seatnum_output {
-    display: inline-block;
-    background: rgb(245,245,245);
-    width:370px;
-
-}
-thead, tbody { display: block; }
-
-tbody {
-    max-height: 320px;    /* Just for the demo          */
-    overflow-y: auto;  /* Trigger vertical scroll    */
-    overflow-x: hidden;  /* Hide the horizontal scroll */
-}
-
-table {
-    border:red;
-    padding: 0 !important;
-}
-table td{
-    background: rgb(245,245,245);
-    height:25px;
-    padding-top:0;
-    width:120px;
-}
-table tr{
-    padding-top:0;
-}
-table th{
-    width:120px;
-}
-.tableheader{
-    background : rgb(74,83,109);
-    color:white;
-    text-align: center;
-}
-.tableheader th{
-    text-align: center;
-    font-weight: normal;
-}
-.table td {
-    padding: 0;
-}
-.table-condensed>thead>tr>td, .table-condensed>tbody>tr>td, .table-condensed>tfoot>tr>td{
-    padding: 0;
-}
-.table {
-    margin-bottom: 0;
-}
-.finalrow {
-    margin-bottom:5px;
-    padding:5px;
-    background: rgb(92,92,92);
-    color:white;
-}
-.finalrow_label {
-     float:left;
-    margin:auto;
-    width:70%;
- }
-.finalrow_value {
-    display:inline-block;
-    width:30%;
-}
-.re {
-    background: rgb(35,57,119);
-    border:0;
-    height: 45px;
-    width:130px;
-}
-.pre {
-    background: rgb(35,57,119);
-    border:0;
-    width:130px;
-    height: 45px;
-
-}
-.now {
-    background: rgb(146,39,143);
-    border:0;
-    width:180px;
-    height: 45px;
-}
-
-
 
 .react-datepicker {
     font-size: 1em;
@@ -142,7 +29,65 @@ table th{
     border-right-color: #ccc;
     left: 1em;
 }
+.react-datepicker__input-container {
+    float:left;
+    color:black;
+}
+.react-datepicker__input-container input{
+    width:120px;
+    text-align: center;
+}
 .react-datepicker__navigation--next {
     border-left-color: #ccc;
     right: 1em;
+}
+
+.spinner-box{
+    margin:150px auto 100px;
+
+    width:50px;
+    height:50px;
+    position:relative;
+}
+.spinner-box:before{
+    content:"";
+    display:block;
+    width:100%;
+    height:100%;
+    border-radius:50%;
+    border:#ccc solid 5px;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+}
+.spinner-axis{
+    position:absolute;
+    left:0;
+    top:0;
+    width:100%;
+    height:100%;
+    -webkit-animation: spin 0.8s steps(100, end) infinite;
+    animation: spin 0.8s steps(100, end) infinite;
+}
+.spinner{
+    width:50%;
+    height:50%;
+    overflow:hidden;
+}
+.spinner-inner{
+    width:200%;
+    height:200%;
+    border-radius:100%;
+    border:#ff0000 solid 5px;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+}
+@-webkit-keyframes spin {
+    0% { -webkit-transform: rotate(0); }
+    100% { -webkit-transform: rotate(360deg); }
+}
+@keyframes spin {
+    0% { transform: rotate(0); }
+    100% { transform: rotate(360deg); }
 }

@@ -7,11 +7,10 @@ import {
     Body,
     Left,
     Right,
-} from '../components';
-import {
     SmallModal,
     Pre_ticket,
-    Buyers
+    Buyers,
+    LoaderModal
 } from '../components';
 
 class Main extends React.Component {
@@ -26,49 +25,66 @@ class Main extends React.Component {
             times : [],
             schedule_picked : null,
             price_picked: null,
-            findBuyers_input :'',
             buyers:[],
             buyers_picked : [],
-            buyers_picked_mode : null
+            buyers_picked_mode : null,
+            smallModalOn : false,
+            buyerModalOn : false,
+            preTicketModalOn : false,
+            loaderModalOn : false,
+            loaderModalTitle : '',
         };
         this.datePick = this.datePick.bind(this);
         this.timePick = this.timePick.bind(this);
         this.loadSeats = this.loadSeats.bind(this);
         this.changePriceOn = this.changePriceOn.bind(this);
         this.changePrice = this.changePrice.bind(this);
+        this.changePriceAll = this.changePriceAll.bind(this);
         this.findBuyers = this.findBuyers.bind(this);
-        this.findBuyers_onInput = this.findBuyers_onInput.bind(this);
         this.preTicketting = this.preTicketting.bind(this);
         this.ticketting = this.ticketting.bind(this);
+        this.ticketting2 = this.ticketting2.bind(this);
         this.pickSeat = this.pickSeat.bind(this);
         this.seats_reset = this.seats_reset.bind(this);
         this.chooseCustomer = this.chooseCustomer.bind(this);
-        this.checkSelectedSeats = this.checkSelectedSeats.bind(this);
+        this.InfoOfSelectedSeats = this.InfoOfSelectedSeats.bind(this);
+        this.preTicketOn = this.preTicketOn.bind(this);
     }
     chooseCustomer(mode, customers) {
+        if(mode==='preTicket') {
+            this.ticketting2(customers);
+        }
         this.setState({
             buyers_picked : customers,
             buyers_picked_mode : mode
-        })
+        });
         console.log(mode, customers);
     }
     seats_reset() {
-        this.setState({
-            seats_picked : [],
-            price_picked : null,
-            buyers : [],
-            findBuyers_input :'',
-            buyers_picked : [],
-            buyers_picked_mode : null
-        })
+        if(this.state.seats_picked && this.state.seats_picked.length) {
+            this.setState({
+                seats_picked : [],
+                price_picked : null,
+            })
+        }
+        else {
+            this.setState({
+                seats_picked: [],
+                price_picked: null,
+                buyers: [],
+                buyers_picked: [],
+                buyers_picked_mode: null,
+            });
+        }
     }
     preTicketting(source, price) {
+        console.log('프리티켓팅');
         let data = [];
         for(let p of this.state.seats_picked) {
             let reservation = {
                 input_date: new Date(),
                 source: source,
-                customer_name: null ,
+                customer_name: source? source : '현장발권' ,
                 customer_phone: null,
                 show_date: this.state.schedule_picked,
                 seat_class: p.seat_class,
@@ -78,12 +94,16 @@ class Main extends React.Component {
                     num : p.num
                 },
                 ticket_quantity: 1,
-                ticket_price: parseInt(price),
+                ticket_price: price ? parseInt(price) : parseInt(p.price),
                 theater: this.state.theater._id,
                 show: this.state.show._id
             };
             data.push(reservation);
         }
+        this.setState({
+            loaderModalOn:true,
+            loaderModalTitle:'발권 중'
+        });
         return fetch('/api/reservation/createMany',{
             method : 'POST',
             headers : {'Content-Type' : 'application/json'},
@@ -104,56 +124,126 @@ class Main extends React.Component {
                 console.log(message);
             });
     }
+
+    //인터파크, 쿠팡등 구매자들과 좌석을 연결해서 발권할 때
     ticketting() {
-        if(this.checkSelectedSeats()===false) {
-            console.log('불합격');
-            return
-        }
+        if( !this.InfoOfSelectedSeats().OK ||
+            !this.state.seats_picked ||
+            !this.state.seats_picked.length||
+            !this.state.buyers_picked)
+            return null;
 
-        let data = [];
-        for(let p of this.state.seats_picked) {
-            let reservation = {
-                input_date: new Date(),
-                customer_name: p.customer_name ? p.customer_name : null ,
-                customer_phone: p.customer_phone ? p.customer_phone : null,
-                show_date: this.state.schedule_picked,
-                seat_class: p.seat_class,
-                seat_position: {
-                    floor : p.floor,
-                    col : p.col,
-                    num : p.num
-                },
-                ticket_quantity: 1,
-                ticket_price: p.price,
-                theater: this.state.theater._id,
-                show: this.state.show._id,
-                print : true
-            };
-            data.push(reservation);
-        }
-        return fetch('/api/reservation/createMany',{
-            method : 'POST',
-            headers : {'Content-Type' : 'application/json'},
-            body : JSON.stringify(data)
-        })
-            .then(res =>{
-                if(res.ok)
-                    return res.json();
-                else
-                    return res.json().then(err => { throw err; })})
-            .then(res => {
+        else {
+            let seats_picked = JSON.parse(JSON.stringify(this.state.seats_picked));
+            let buyers_picked = JSON.parse(JSON.stringify(this.state.buyers_picked));
+            let data = [];
+            for (let seat of seats_picked) {
+                for(let buyer of buyers_picked) {
+                    if(!buyer.seat_position && seat.seat_class===buyer.seat_class) {
+                        buyer.seat_position = {
+                            floor:seat.floor,
+                            col:seat.col,
+                            num:seat.num
+                        };
+                        break;
+                    }
+                }
+            }
 
-                        this.loadSeats(this.state.schedule_picked);
-                        console.log(res.data);
-            })
-            .catch((err) => {
-                let message = err;
-                if(err.message && err.message!=='')
-                    message = err.message;
-                console.log(message);
+            for(let buyer of buyers_picked) {
+                let reservation = {
+                    _id:buyer._id,
+                    input_date: new Date(),
+                    seat_position: buyer.seat_position,
+                    printed: true
+                };
+                data.push(reservation);
+            }
+
+            this.setState({
+                loaderModalOn: true,
+                loaderModalTitle: '발권 중'
             });
+            return fetch('/api/reservation/ticketting', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(data)
+            })
+                .then(res => {
+                    if (res.ok)
+                        return res.json();
+                    else
+                        return res.json().then(err => {
+                            throw err;
+                        })
+                })
+                .then(res => {
+                    this.loadSeats(this.state.schedule_picked);
+                })
+                .catch((err) => {
+                    let message = err;
+                    if (err.message && err.message !== '')
+                        message = err.message;
+                    console.log(message);
+                });
+        }
     }
-    findBuyers() {
+
+    //구매자 정하지 않거나 사전 발권시 입력한 정보로 구매할 때
+    ticketting2(buyers_picked) {
+        if(!buyers_picked)
+            return null;
+
+        else {
+            // let buyers_picked = JSON.parse(JSON.stringify(buyers_picked));
+            let data = [];
+
+            for(let buyer of buyers_picked) {
+                let reservation = {
+                    _id:buyer._id,
+                    printed: true
+                };
+                data.push(reservation);
+            }
+
+            this.setState({
+                loaderModalOn: true,
+                loaderModalTitle: '발권 중'
+            });
+            return fetch('/api/reservation/ticketting', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(data)
+            })
+                .then(res => {
+                    if (res.ok)
+                        return res.json();
+                    else
+                        return res.json().then(err => {
+                            throw err;
+                        })
+                })
+                .then(res => {
+                    this.loadSeats(this.state.schedule_picked);
+                })
+                .catch((err) => {
+                    let message = err;
+                    if (err.message && err.message !== '')
+                        message = err.message;
+                    console.log(message);
+                });
+        }
+    }
+    findBuyers(phoneNumber) {
+        this.setState({
+            seats_picked: [],
+            price_picked: null,
+            buyers: [],
+            buyers_picked: [],
+            buyers_picked_mode: null,
+            loaderModalOn:true,
+            loaderModalTitle:'검색 중'
+        });
         fetch('/api/reservation/read/theater/'+this.state.theater._id+'/show/'+this.state.show._id+'/date/'+this.state.schedule_picked.getTime(),{
             method : 'GET'
         })
@@ -164,13 +254,16 @@ class Main extends React.Component {
                     return res.json().then(err => { throw err; })})
             .then(res => {
                 let buyers = [];
+                console.log("BUYERS");
+                console.log(res.data);
                 for(let r of res.data) {
-                    if (this.state.findBuyers_input === r.customer_phone && !r.print)
+                    if (phoneNumber === r.customer_phone && !r.printed)
                         buyers.push(r);
                 }
-                this.setState({buyers:buyers});
-                $('#Buyers').modal('show');
-
+                this.setState({
+                    buyers:buyers,
+                    loaderModalOn:false,
+                    buyerModalOn:true});
             })
             .catch((err) => {
                 let message = err;
@@ -181,37 +274,53 @@ class Main extends React.Component {
 
 
     }
-    findBuyers_onInput(e) {
-        this.setState({
-            findBuyers_input : e.target.value
-        });
-    }
     changePriceOn(seat) {
         this.setState({
-            price_picked:seat
+            price_picked:seat,
+            smallModalOn:true
         });
-        $('#SmallModal').modal('show');
     }
-    changePrice(e) {
-        let price = e.target.value;
-        if(e.target.value === '선택') {
-            return;
-        }
+    changePrice(price) {
         let seats_picked = this.state.seats_picked;
         let price_picked = this.state.price_picked;
         for(let i in seats_picked) {
             if(seats_picked[i] === price_picked) {
                 this.setState((state) => {
                     state.seats_picked[i].price = price;
+                    state.smallModalOn = false;
                 });
-                $('#SmallModal').modal('hide');
                 return;
             }
         }
+        this.setState({
+            smallModalOn : false
+        });
     }
-    componentWillMount() {
+    changePriceAll(ratio) {
+        let seats_picked = JSON.parse(JSON.stringify(this.state.seats_picked));
+        for(let seat of seats_picked) {
+            if ( seat.seat_class === 'VIP')
+                seat.price = 50000*ratio;
+            else if(seat.seat_class === 'R')
+                seat.price = 40000*ratio;
+        }
+        this.setState({
+            seats_picked:seats_picked,
+            smallModalOn:false
+        });
+    }
+    preTicketOn(){
+        if(this.state.seats_picked && this.state.seats_picked.length)
+            this.setState({
+                preTicketModalOn : true
+            })
+    }
+    componentDidMount() {
         let theater,show,showtime;
-
+        this.setState({
+            loaderModalOn:true,
+            loaderModalTitle:'소월아트홀 - 옥토넛'
+        });
         fetch('/api/theater/read',{
             method : 'GET'
         })
@@ -259,7 +368,8 @@ class Main extends React.Component {
                                 this.setState({
                                     theater:theater,
                                     show:show,
-                                    showtime:showtime
+                                    showtime:showtime,
+                                    loaderModalOn:false
                                 });
                             })
                             .catch((err) => {
@@ -285,8 +395,6 @@ class Main extends React.Component {
                 console.log(message);
             });
     }
-    componentDidMount(){
-    }
     datePick(date) {
         let schedule = this.state.showtime.schedule;
         let times = [];
@@ -302,20 +410,19 @@ class Main extends React.Component {
         }
         this.setState({
             times : times,
-            seats_picked :[]
         });
         if(times.length>0) {
-            this.setState({schedule_picked:times[0]});
             this.loadSeats(times[0]);
+        }else {
+            this.setState({
+                seats:[],
+                seats_picked:[],
+            })
         }
     }
     timePick(time) {
-        this.setState({
-            seats_picked :[]
-        });
         for(let t of this.state.times) {
             if(t.toLocaleTimeString() === time) {
-                this.setState({schedule_picked:t});
                 this.loadSeats(t);
                 break;
             }
@@ -326,6 +433,13 @@ class Main extends React.Component {
             showtime : this.state.showtime._id,
             date : date
         };
+
+        if(!this.state.loaderModalOn)
+            this.setState({
+                loaderModalOn:true,
+                loaderModalTitle:date.toLocaleString()
+            });
+
         return fetch('/api/seats/showtime/'+data.showtime+'/date/'+new Date(data.date).getTime(),{
             method : 'GET'
         })
@@ -335,9 +449,27 @@ class Main extends React.Component {
                 else
                     return res.json().then(err => { throw err; })})
             .then(res => {
+                /*
+                가격 정보를 저장한다.
+                 */
+                for(let seat of res.data.not_reserved_seats) {
+                    if(seat.seat_class==='VIP')
+                        seat.price = 50000;
+                    else if(seat.seat_class==='R')
+                        seat.price = 40000;
+                    else
+                        throw new Error('좌석 등급을 식별할 수 없습니다. - '+seat.seat_class);
+                }
+                console.log(res);
                 this.setState({
+                    schedule_picked:date,
                     seats:res.data.not_reserved_seats,
-                    seats_picked:[]
+                    seats_picked:[],
+                    price_picked: null,
+                    buyers: [],
+                    buyers_picked: [],
+                    buyers_picked_mode: null,
+                    loaderModalOn:false
                 });
             })
             .catch((err) => {
@@ -347,12 +479,10 @@ class Main extends React.Component {
                 console.log(message);
             });
     }
-
     pickSeat(seats) {
         let seats_picked = JSON.parse(JSON.stringify(this.state.seats_picked));
 
         if(Array.isArray(seats)) {
-            console.log(seats);
             let seats_cleaned = [];
             for(let s of seats) {
                 let temp = true;
@@ -360,8 +490,6 @@ class Main extends React.Component {
                     if (s.floor === s2.floor && s.col === s2.col && s.num === s2.num){
                         temp = false;
                         break;
-                        console.log('같아')
-                        console.log(s2);
                     }
                 }
                 if(temp===true)
@@ -380,18 +508,19 @@ class Main extends React.Component {
 
             if(index>-1)
                 seats_picked.splice(index,1);
-            else
+            else {
+                console.log('original seat');
+                console.log(seat);
                 seats_picked.push(seat);
+            }
         }
-        console.log('seats_picked')
-        console.log(seats_picked);
-        this.setState({seats_picked:seats_picked});
+        /*
+        좌석의 기본 정보를 직접 변경하지 않는다.
+        기본 정보는 보존한다.
+         */
+        this.setState({seats_picked:JSON.parse(JSON.stringify(seats_picked))});
     }
-
-    checkSelectedSeats(){
-
-        let seatsNumber;
-        let seatsNumber_moreInfo;
+    InfoOfSelectedSeats(){
         if(this.state.seats.length!==0) {
             let numOfVIP = 0;
             let numOfR = 0;
@@ -401,221 +530,101 @@ class Main extends React.Component {
                 else if(s.seat_class==="R")
                     numOfR++;
             }
+
             if(this.state.buyers_picked && this.state.buyers_picked.length) {
                 let numOfVIP_buyers = 0;
                 let numOfR_buyers = 0;
                 for(let s of this.state.buyers_picked) {
-                    if(s.source!=='인터파크') {
+                    if(!s.seat_position) {
                         if (s.seat_class === "VIP")
                             numOfVIP_buyers++;
                         else if (s.seat_class === "R")
                             numOfR_buyers++;
                     }
                 }
-                let VIP = numOfVIP_buyers-numOfVIP;
-                let R   = numOfR_buyers-numOfR;
-                if(VIP===0 && R===0)
-                    return true;
-                else
-                    return false;
+                let errOfVIP = numOfVIP_buyers-numOfVIP;
+                let errOfR   = numOfR_buyers-numOfR;
+
+                return {
+                    numOfVIP : numOfVIP,
+                    numOfR : numOfR,
+                    numOfVIP_buyers : numOfVIP_buyers,
+                    numOfR_buyers : numOfR_buyers,
+                    errOfVIP : errOfVIP,
+                    errOfR : errOfR,
+                    OK : errOfVIP===0 && errOfR===0
+                }
             }
-        }
+            else if(this.state.seats_picked && this.state.seats_picked.length)
+                return {
+                    numOfVIP : numOfVIP,
+                    numOfR : numOfR,
+                    OK : true
+                };
+            else
+                return {
+                    OK : false
+                };
+        } else
+            return {
+                OK : false
+            }
     }
     render() {
-        let tableFooter = null;
-        if(this.state.seats_picked.length) {
-            let sum = 0;
-            for(let i of this.state.seats_picked) {
-                if(!i['price']){
-                    if(i.seat_class==='VIP')
-                        i['price'] = 50000;
-                    else if(i.seat_class==='R')
-                        i['price'] = 40000;
-                }
-                sum += parseInt(i['price']);
-            }
-            tableFooter = (
-                <div className="finalrow">
-                    <div className="finalrow_label" >합계</div>
-                    <div className="finalrow_value" >{sum}</div>
-                </div>
-            )
-        }
-
-        let smallModal = <SmallModal/>
-        if(this.state.price_picked) {
-            let basePrice = this.state.price_picked.seat_class==='VIP' ? 50000 : 40000;
-            smallModal = (
-                <SmallModal title={
-                    this.state.price_picked.col + '열 ' +
-                    this.state.price_picked.num + '번 좌석의 가격을 변경합니다.'}>
-                    <div>
-                        <h3>현재 해당
-                            좌석은 {this.state.price_picked.seat_class}, {this.state.price_picked.price}원입니다.</h3>
-                        <select onChange={this.changePrice} defaultValue={'선택'} className="form-control">
-                            <option>선택</option>
-                            <option value={basePrice}>기본 가격 : {basePrice}</option>
-                            <option value={basePrice * 0.5}>50% 할인권 : {basePrice * 0.5}</option>
-                            <option value={basePrice * 0.5}>장애인, 국가 유공자 : {basePrice * 0.5}</option>
-                            <option value={0}>초대권 : 0</option>
-                        </select>
-                    </div>
-                </SmallModal>
-            );
-        }
-
-        let summary = null;
-        if(this.state.buyers_picked.length!==0) {
-            summary = (
-               <table className='table table-condensed table-hover'>
-                     <thead>
-                    <tr className='tableheader'>
-                        <th>번호</th>
-                        <th>구매처</th>
-                        <th>이름</th>
-                        <th>좌석등급</th>
-                        <th>좌석번호</th>
-                        <th>티켓번호</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    {
-                        this.state.buyers_picked.map((buyer, index)=> {
-                            return(
-                                <tr key={index}>
-                                    <td>{index+1}</td>
-                                    <td>{buyer.source}</td>
-                                    <td>{buyer.customer_name}</td>
-                                    <td>{buyer.seat_class}</td>
-                                    <td>{buyer.seat_position ?
-                                        buyer.seat_position.col+'열 '+
-                                        buyer.seat_position.num+'번' : '미배정'}</td>
-                                    <td>{buyer.ticket_code}</td>
-                                </tr>
-                            )
-                        })
-                    }
-
-                    </tbody>
-                </table>
-            );
-        }
-
-        let seatsNumber;
-        let seatsNumber_moreInfo;
-        if(this.state.seats.length!==0) {
-            let numOfVIP = 0;
-            let numOfR = 0;
-            for(let s of this.state.seats_picked) {
-                if(s.seat_class==="VIP")
-                    numOfVIP++;
-                else if(s.seat_class==="R")
-                    numOfR++;
-            }
-            seatsNumber = (
-                    <h4 style={{margin:'5px'}}>
-                        {this.state.seats_picked.length+"개 선택 ( VIP : "+parseInt(numOfVIP)+"석 R : "+parseInt(numOfR)+"석 )"}</h4>
-            );
-            if(this.state.buyers_picked && this.state.buyers_picked.length) {
-                let numOfVIP_buyers = 0;
-                let numOfR_buyers = 0;
-                for(let s of this.state.buyers_picked) {
-                    if(s.source!=='인터파크') {
-                        if (s.seat_class === "VIP")
-                            numOfVIP_buyers++;
-                        else if (s.seat_class === "R")
-                            numOfR_buyers++;
-                    }
-                }
-                let VIP = numOfVIP_buyers-numOfVIP;
-                let R   = numOfR_buyers-numOfR;
-                seatsNumber_moreInfo = (
-                    <h6 style={{margin:'5px',color:'red'}}>
-                        {VIP>0 ? 'VIP '+VIP+'석 추가 필요, ':VIP<0 ? 'VIP '+Math.abs(VIP)+'석 초과' : null }
-                        {R>0 ? 'R '+R+'석 추가 필요, ':R<0 ? 'R '+Math.abs(R)+'석 초과' : null }
-                    </h6> );
-            }
-        }
         return (
             <div>
-                <Header title={'바다 탐험대 옥토넛'}/>
+                <Header
+                    title={'바다 탐험대 옥토넛'}
+                    onDatePick={this.datePick}
+                    onTimePick={this.timePick}
+                    Times={this.state.times}/>
                 <Body>
                     <Left
-                        onDatePick={this.datePick}
-                        onTimePick={this.timePick}
-                        Times={this.state.times}
                         seats_picked={this.state.seats_picked}
                         seats = {this.state.seats}
                         pickSeat = {this.pickSeat}
-                        imageSize = {{width:550,height:550}}/>
-
-                    <div className='right' style={{width:'40%', display:'inline-block'}}>
-                        <div className='right-wrapper'>
-                            <div className='phone-wrapper'>
-                                <div className='phonelabel'>
-                                    <b>전화번호 뒷자리</b>
-                                </div>
-                                <div className="input-group">
-                                    <input type="text" className="form-control phoneinput" onChange={this.findBuyers_onInput} value={this.state.findBuyers_input} />
-                                    <span className="input-group-btn">
-                                        <button className="btn btn-primary" style={{background: 'rgb(35,57,119)'}} type="button" onClick={this.findBuyers}>검색</button>
-                                    </span>
-                                </div>
-                            </div>
-
-                            <div className='summary'>
-                                {summary}
-                            </div>
-                            <div className="seatnum_wrapper">
-                                <div className="seatnum_label">
-                                    <h4 style={{margin:'5px'}}>좌석수</h4>
-                                </div>
-                                <div className="seatnum_output">
-                                    {seatsNumber}
-                                    {seatsNumber_moreInfo}
-                                </div>
-                            </div>
-                            <div>
-                                <table className='table table-condensed table-hover'>
-                                    <thead>
-                                    <tr className='tableheader'>
-                                        <th>번호</th>
-                                        <th>좌석등급</th>
-                                        <th>좌석번호</th>
-                                        <th>가격</th>
-                                    </tr>
-                                    </thead>
-                                    <tbody>
-                                    {
-                                        this.state.seats_picked.map((seat, index)=> {
-                                            return(
-                                                <tr key={index}>
-                                                    <td>{index+1}</td>
-                                                    <td>{seat.seat_class}</td>
-                                                    <td>{seat.col+'열 '+seat.num+'번 '}</td>
-                                                    <td><a href='#' onClick={() => {this.changePriceOn(seat)}}>{seat.price}</a></td>
-                                                </tr>
-                                            )
-                                        })
-                                    }
-
-                                    </tbody>
-                                </table>
-                                {tableFooter}
-                            </div>
-                            <div>
-                                <button style={{marginRight:'5px'}} className="btn btn-primary re" onClick={this.seats_reset}>다시선택</button>
-                                <button style={{marginRight:'5px'}} className="btn btn-primary pre" onClick={(e) => {
-                                    $('#Pre_ticket').modal('show');
-                                }}>사전발권</button>
-                                <button className="btn btn-primary now" onClick={this.ticketting}>발권</button>
-                            </div>
-                        </div>
-                    </div>
+                        backgroundSize = {{width:650,height:650}}/>
+                    <Right
+                        findBuyers={this.findBuyers}
+                        buyers_picked={this.state.buyers_picked}
+                        seats_picked={this.state.seats_picked}
+                        changePriceOn={this.changePriceOn}
+                        resetSeats={this.seats_reset}
+                        ticketting={this.ticketting}
+                        preTicketting={this.preTicketting}
+                        ticketting2={this.ticketting2}
+                        seatsInfo={this.InfoOfSelectedSeats()}
+                        preTicketOn={this.preTicketOn}/>
                 </Body>
-                <Pre_ticket preTicketting={this.preTicketting} />
-                <Buyers chooseCustomers={this.chooseCustomer} data={this.state.buyers}/>
-                {smallModal}
+
+
+                <Pre_ticket
+                    preTicketting={this.preTicketting}
+                    on={this.state.preTicketModalOn}
+                    onClose={(e) => {
+                        this.setState({preTicketModalOn: false})
+                    }}/>
+
+                <Buyers
+                    chooseCustomers={this.chooseCustomer}
+                    data={this.state.buyers}
+                    on={this.state.buyerModalOn}
+                    onClose={(e)=>{this.setState({buyerModalOn:false})}}/>
+
+                <SmallModal
+                    on={this.state.smallModalOn}
+                    onClose={(e)=>{this.setState({smallModalOn:false})}}
+                    price_picked={this.state.price_picked}
+                    changePrice={this.changePrice}
+                    changePriceAll={this.changePriceAll}
+                    basePrice={this.state.price_picked ?
+                        this.state.price_picked.seat_class==='VIP' ? 50000 : 40000
+                        : 0}/>
+                <LoaderModal
+                    on={this.state.loaderModalOn}
+                    title={this.state.loaderModalTitle}/>
+
+
             </div>
         )
     }

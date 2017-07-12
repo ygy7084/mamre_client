@@ -273,7 +273,7 @@ router.post('/parse/reservation', upload.single('file'), (req, res) => {
          ticket_code,         //예약 번호, 주문 번호, 티켓 번호 등 각 사이트별 코드
          ticket_price,        //티켓 가격
          theater,             //공연장 참조
-         show                 //공연 참조
+         show,                 //공연 참조
          */
         let outputs = [];
         for(let i=0;i<parsed_rows_array.length;i++) {
@@ -303,6 +303,7 @@ router.post('/parse/reservation', upload.single('file'), (req, res) => {
             output.ticket_price = row.ticket_price;
             output.theater = req.body.theater;
             output.show = req.body.show;
+            output.printed = false;
             outputs.push(output);
         }
 

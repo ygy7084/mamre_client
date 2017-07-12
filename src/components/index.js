@@ -26,6 +26,7 @@ import SmallModal from './SmallModal';
 import Pre_ticket from './Pre_ticket';
 import Buyers from './Buyers';
 import Body from './Body';
+import LoaderModal from './LoaderModal';
 
 export {
     API_test_Excel_Reservation,
@@ -55,5 +56,6 @@ export {
     SmallModal,
     Pre_ticket,
     Buyers,
-    Body
+    Body,
+    LoaderModal
 };

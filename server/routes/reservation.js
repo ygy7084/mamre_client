@@ -1,6 +1,6 @@
 import express from 'express';
 import mongoose from 'mongoose';
-import {Reservation, Theater, Showtime} from '../models';
+import {Reservation, Showtime} from '../models';
 
 const router = express.Router();
 
@@ -20,20 +20,27 @@ router.post('/create', (req, res) => {
 });
 
 router.post('/ticketting', (req, res) => {
-
+    const inputs = req.body;
+    const theater = inputs[0].theater;
+    const show = inputs[0].show;
     //inputs 안의 모든 데이터의 theater 와 show는 각각 같은 값으로 이뤄져야 함
 
     let bulk = [];
     let wrong_data = [];
 
-        for (let o of req.body) {
+        for (let o of inputs) {
             bulk.push({
-                //source,show_date,show,theater,seat_position 없으면 insert 있으면 nothing
                 updateOne: {
                     filter: {
                         _id : o._id
                     },
-                    update: {print:true},
+                    update: {
+                        $set : {
+                            seat_position:o.seat_position,
+                            input_date:o.input_date,
+                            printed:o.printed
+                        }
+                    },
                     upsert: true
                 },
             });
@@ -120,9 +127,7 @@ router.post('/createMany', (req, res) => {
                 if(bulk.length!==0) {
                     Showtime.bulkWrite(bulk).then((results) => {
                         return res.json({
-                            data: {
-                                wrong_data: wrong_data
-                            }
+                            data: results
                         })
                     });
                 }

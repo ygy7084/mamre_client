@@ -15,7 +15,8 @@ class Body extends React.Component {
 
 const style = {
     body:{
-        paddingTop:'20px'
+        paddingTop:'20px',
+        minWidth:'1120px',
     }
 };
 

@@ -123,7 +123,8 @@ class API_test_Excel_Reservation extends React.Component {
                 ticket_code: p.ticket_code,
                 ticket_price: p.ticket_price,
                 theater: this.state.theater_picked._id,
-                show: this.state.show_picked._id
+                show: this.state.show_picked._id,
+                printed: p.printed
             };
             data.push(reservation);
         }
