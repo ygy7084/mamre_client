@@ -2,6 +2,7 @@ import express from 'express';
 import multer from 'multer';
 import {Excel} from '../models';
 import XLSX from 'xlsx';
+import moment from 'moment-timezone';
 
 const router = express.Router();
 
@@ -49,7 +50,8 @@ router.post('/parse/showtime', upload.single('file'), (req, res) => {
         let day = new RegExp('[0-9]+(?=일)').exec(o.date)[0];
         let hour = new RegExp('[0-9]+(?=시)').exec(o.time)[0];
         let min = new RegExp('[0-9]+(?=분)').exec(o.time)[0];
-        obj.date = new Date(year,mon-1,day,hour,min);
+        obj.date = new Date(moment.tz([year,mon-1,day,hour,min], 'Asia/Seoul').format());
+
         results.push(obj);
     }
     res.json({data:results});
@@ -227,8 +229,9 @@ router.post('/parse/reservation', upload.single('file'), (req, res) => {
             //단, 현재 월보다 공연 월이 적은 값일 경우 내년이라고 인식하고 현재 연도+1을 입력
             if(!o['show_date_year']) {
                 let month = o['show_date_month'];
-                let current_month = new Date().getMonth()+1;
-                let year = new Date().getFullYear();
+
+                let current_month = new Date(moment().tz("Asia/Seoul").format()).getMonth()+1;
+                let year = new Date(moment().tz("Asia/Seoul").format()).getFullYear();
                 if(month<current_month)
                     year++;
                 o['show_date_year'] = year;
@@ -282,13 +285,15 @@ router.post('/parse/reservation', upload.single('file'), (req, res) => {
             output.source = excel.source;
             output.customer_name = row.customer_name;
             output.customer_phone = row.customer_phone;
+
             output.show_date = new Date(
-                row.show_date_year,
-                row.show_date_month-1,
-                row.show_date_day,
-                row.show_time_hour,
-                row.show_time_minute
-            );
+                moment.tz([
+                    row.show_date_year,
+                    row.show_date_month-1,
+                    row.show_date_day,
+                    row.show_time_hour,
+                    row.show_time_minute], 'Asia/Seoul').format());
+
             output.seat_class = row.seat_class;
             if(!row.seat_position_floor && !row.seat_position_col && !row.seat_position_num)
                 output.seat_position = undefined;

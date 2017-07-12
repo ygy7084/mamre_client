@@ -174,7 +174,7 @@ class Right extends React.Component {
                     <button className={classNames({
                                 'btn':true,
                                 'btn-primary':true,
-                                'disabled':!this.props.seatsInfo.OK
+                                'disabled':!this.props.seatsInfo.OK||this.props.buyers_picked.length
                             })}
                             style={style.button1}
                             onClick={this.props.preTicketOn}>사전발권</button>

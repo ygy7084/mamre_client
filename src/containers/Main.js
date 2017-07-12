@@ -127,12 +127,9 @@ class Main extends React.Component {
 
     //인터파크, 쿠팡등 구매자들과 좌석을 연결해서 발권할 때
     ticketting() {
-        if( !this.InfoOfSelectedSeats().OK ||
-            !this.state.seats_picked ||
-            !this.state.seats_picked.length||
-            !this.state.buyers_picked)
+        console.log(this.InfoOfSelectedSeats());
+        if( !this.InfoOfSelectedSeats().OK )
             return null;
-
         else {
             let seats_picked = JSON.parse(JSON.stringify(this.state.seats_picked));
             let buyers_picked = JSON.parse(JSON.stringify(this.state.buyers_picked));

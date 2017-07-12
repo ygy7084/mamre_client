@@ -44133,7 +44133,7 @@ var Right = function (_React$Component) {
                         { className: (0, _classnames2.default)({
                                 'btn': true,
                                 'btn-primary': true,
-                                'disabled': !this.props.seatsInfo.OK
+                                'disabled': !this.props.seatsInfo.OK || this.props.buyers_picked.length
                             }),
                             style: style.button1,
                             onClick: this.props.preTicketOn },
@@ -45421,7 +45421,8 @@ var Main = function (_React$Component) {
         value: function ticketting() {
             var _this3 = this;
 
-            if (!this.InfoOfSelectedSeats().OK || !this.state.seats_picked || !this.state.seats_picked.length || !this.state.buyers_picked) return null;else {
+            console.log(this.InfoOfSelectedSeats());
+            if (!this.InfoOfSelectedSeats().OK) return null;else {
                 var seats_picked = JSON.parse(JSON.stringify(this.state.seats_picked));
                 var buyers_picked = JSON.parse(JSON.stringify(this.state.buyers_picked));
                 var data = [];
