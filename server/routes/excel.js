@@ -3,6 +3,7 @@ import multer from 'multer';
 import {Excel} from '../models';
 import XLSX from 'xlsx';
 import moment from 'moment-timezone';
+import tmp from 'tmp';
 
 const router = express.Router();
 
@@ -317,6 +318,37 @@ router.post('/parse/reservation', upload.single('file'), (req, res) => {
             data: outputs
         });
     });
+});
+
+router.post('/ticketExcel', (req, res) => {
+    const wb = XLSX.utils.book_new();
+    const ws_name = "tickets";
+
+    const ws_data = [
+        [ "단체명", "공연일시", "발권인원", "좌석등급", "판매가", "좌석번호"],
+    ];
+    for(let r of req.body) {
+        ws_data.push([
+            r.source,
+            new Date(r.show_date).toLocaleString(),
+            r.ticket_quantity,
+            r.seat_class,
+            r.ticket_price,
+            r.seat_position.col+'열 '+r.seat_position.num+'번'
+        ]);
+    }
+    const ws = XLSX.utils.aoa_to_sheet(ws_data);
+
+    wb.SheetNames.push(ws_name);
+
+    wb.Sheets[ws_name] = ws;
+
+    tmp.file(function _tempFileCreated(err, path, fd, cleanupCallback) {
+        if (err) throw err;
+        XLSX.writeFile(wb, path);
+        return res.download(path, 'tickets.xlsx');
+    });
+
 });
 
 //엑셀 파싱 룰을 생성한다.

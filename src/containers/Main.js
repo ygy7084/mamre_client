@@ -1,4 +1,5 @@
 import React from 'react';
+import FileDownload from 'react-file-download';
 
 import style from '../main.css';
 
@@ -10,7 +11,9 @@ import {
     SmallModal,
     Pre_ticket,
     Buyers,
-    LoaderModal
+    LoaderModal,
+    modalSVG,
+    SVGM
 } from '../components';
 
 class Main extends React.Component {
@@ -49,6 +52,7 @@ class Main extends React.Component {
         this.chooseCustomer = this.chooseCustomer.bind(this);
         this.InfoOfSelectedSeats = this.InfoOfSelectedSeats.bind(this);
         this.preTicketOn = this.preTicketOn.bind(this);
+        this.ticketExcel = this.ticketExcel.bind(this);
     }
     chooseCustomer(mode, customers) {
         if(mode==='preTicket') {
@@ -78,13 +82,12 @@ class Main extends React.Component {
         }
     }
     preTicketting(source, price) {
-        console.log('프리티켓팅');
         let data = [];
         for(let p of this.state.seats_picked) {
             let reservation = {
                 input_date: new Date(),
                 source: source,
-                customer_name: source? source : '현장발권' ,
+                customer_name:  null,
                 customer_phone: null,
                 show_date: this.state.schedule_picked,
                 seat_class: p.seat_class,
@@ -127,9 +130,9 @@ class Main extends React.Component {
 
     //인터파크, 쿠팡등 구매자들과 좌석을 연결해서 발권할 때
     ticketting() {
-        console.log(this.InfoOfSelectedSeats());
         if( !this.InfoOfSelectedSeats().OK )
             return null;
+
         else {
             let seats_picked = JSON.parse(JSON.stringify(this.state.seats_picked));
             let buyers_picked = JSON.parse(JSON.stringify(this.state.buyers_picked));
@@ -190,7 +193,6 @@ class Main extends React.Component {
     ticketting2(buyers_picked) {
         if(!buyers_picked)
             return null;
-
         else {
             // let buyers_picked = JSON.parse(JSON.stringify(buyers_picked));
             let data = [];
@@ -567,14 +569,50 @@ class Main extends React.Component {
                 OK : false
             }
     }
+    ticketExcel(source, price) {
+        let data = [];
+        for(let p of this.state.seats_picked) {
+            let reservation = {
+                source: source,
+                show_date: this.state.schedule_picked,
+                seat_class: p.seat_class,
+                seat_position: {
+                    col: p.col,
+                    num: p.num
+                },
+                ticket_quantity: 1,
+                ticket_price: price ? parseInt(price) : parseInt(p.price),
+            };
+            data.push(reservation);
+        }
+        return fetch('/api/excel/ticketExcel',{
+            method : 'POST',
+            headers : {'Content-Type' : 'application/json'},
+            body : JSON.stringify(data)
+        })  .then(res=> res.blob())
+            .then((blob) => {
+                FileDownload(blob, 'tickets.xlsx');
+            })
+            .catch((err) => {
+                let message = err;
+                if(err.message && err.message!=='')
+                    message = err.message;
+                console.log(message);
+            });
+    }
     render() {
         return (
             <div>
+                {/*<SVGM seats_picked={this.state.seats_picked} />*/}
+                {/*<a href='#' className='button' onClick={() => {*/}
+                    {/*$('#SVGM').modal('show');}*/}
+                {/*}>티켓확인</a>*/}
                 <Header
                     title={'바다 탐험대 옥토넛'}
                     onDatePick={this.datePick}
                     onTimePick={this.timePick}
                     Times={this.state.times}/>
+
                 <Body>
                     <Left
                         seats_picked={this.state.seats_picked}
@@ -597,6 +635,7 @@ class Main extends React.Component {
 
                 <Pre_ticket
                     preTicketting={this.preTicketting}
+                    ticketExcel={this.ticketExcel}
                     on={this.state.preTicketModalOn}
                     onClose={(e) => {
                         this.setState({preTicketModalOn: false})
@@ -617,11 +656,10 @@ class Main extends React.Component {
                     basePrice={this.state.price_picked ?
                         this.state.price_picked.seat_class==='VIP' ? 50000 : 40000
                         : 0}/>
+
                 <LoaderModal
                     on={this.state.loaderModalOn}
                     title={this.state.loaderModalTitle}/>
-
-
             </div>
         )
     }

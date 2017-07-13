@@ -16,6 +16,7 @@ module.exports = {
         filename: 'bundle.js',
         publicPath: '/'
     },
+
     module: {
         loaders : [
             {
@@ -27,12 +28,29 @@ module.exports = {
                 exclude:/node_modules/
             },
             {
+                test: /\.svg$/,
+                loaders: [
+                    {
+                        loader: 'babel-loader',
+                        query: {
+                            presets: ['es2015']
+                        }
+                    },
+                    {
+                        loader: 'react-svg-loader',
+                        query: {
+                            jsx: true
+                        }
+                    }
+                ]
+            },
+            {
                 test: /\.css$/,
                 loader : 'style-loader!css-loader'
             },
             {
                 test: /\.(png|jpg|gif|woff|woff2|eot|ttf|svg)$/,
-                loader: 'url-loader?limit=100000'
+                loaders: ['url-loader?limit=100000','file-loader']
             }
         ]
     }

@@ -1,6 +1,7 @@
 import express from 'express';
 import mongoose from 'mongoose';
 import {Reservation, Showtime} from '../models';
+import PDFDocument from 'pdfkit';
 
 const router = express.Router();
 
@@ -17,6 +18,10 @@ router.post('/create', (req, res) => {
             });
         }
     });
+});
+
+router.get('/print', (req, res) => {
+    const doc = new PDFDocument();
 });
 
 router.post('/ticketting', (req, res) => {

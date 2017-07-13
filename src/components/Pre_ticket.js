@@ -13,6 +13,7 @@ class Pre_ticket extends React.Component {
         this.ticketting = this.ticketting.bind(this);
         this.openModal = this.openModal.bind(this);
         this.closeModal = this.closeModal.bind(this);
+        this.ticketExcel = this.ticketExcel.bind(this);
     }
     componentDidMount() {
         this.props.on ? this.openModal() : this.closeModal()
@@ -54,6 +55,14 @@ class Pre_ticket extends React.Component {
             this.props.onClose();
         }
     }
+    ticketExcel() {
+        if(this.state.sourceInput&&
+            this.state.sourceInput.length&&
+            this.state.priceInput&&
+            this.state.priceInput.length) {
+            this.props.ticketExcel(this.state.sourceInput, this.state.priceInput);
+        }
+    }
     render() {
         return (
             <div
@@ -86,7 +95,7 @@ class Pre_ticket extends React.Component {
                             <label>
                                 판매가
                             </label>
-                                <input type='text'
+                                <input type='number'
                                        style={style.input}
                                        onChange={this.priceInput_onChange}
                                        value={this.state.priceInput}/>
@@ -105,6 +114,19 @@ class Pre_ticket extends React.Component {
                                     })}
                                     onClick={this.ticketting}>
                                 발권
+                            </button>
+                            <button type="button"
+                                    style={style.submit}
+                                    className={classNames({
+                                        'btn':true,
+                                        'btn-default':true,
+                                        'disabled':!(this.state.sourceInput&&
+                                        this.state.sourceInput.length&&
+                                        this.state.priceInput&&
+                                        this.state.priceInput.length)
+                                    })}
+                                    onClick={this.ticketExcel}>
+                                엑셀 출력
                             </button>
                         </div>
                     </div>
