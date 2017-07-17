@@ -49,10 +49,13 @@ class API_test_Excel_Show extends React.Component {
             show : this.state.show_picked._id,
             schedule : this.state.parsed_excel
         };
+        let wrapper = {
+            data : data
+        };
         return fetch('/api/showtime/create',{
             method : 'POST',
             headers : {'Content-Type' : 'application/json'},
-            body : JSON.stringify(data)
+            body : JSON.stringify(wrapper)
         })
             .then(res =>{
                 if(res.ok)

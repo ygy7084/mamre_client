@@ -32,10 +32,15 @@ db.once('open', () => {
 //POST 연결을 위한 설정
 app.use(bodyParser.urlencoded({extended:true, limit: '5mb'}));
 app.use(bodyParser.json({limit: '5mb'}));
+app.enable('trust proxy')
 
 //API 라우트
 app.use('/api', api);
 
+app.get('/test2',(req,res)=>{
+    console.log(req.ip);
+    res.end();
+})
 //정적 파일 라우트
 app.use('/', express.static(path.join(__dirname, './../public')));
 

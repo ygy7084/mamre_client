@@ -5,7 +5,7 @@ const router = express.Router();
 
 //공연장을 만든다.
 router.post('/create', (req, res) => {
-    const theater = new Theater(req.body);
+    const theater = new Theater(req.body.data);
     theater.save((err, results) => {
         if(err) {
             console.error(err);
@@ -63,17 +63,17 @@ router.get('/read', (req, res) => {
 
 router.put('/update/coords', (req, res) => {
     Theater.update({
-        _id:req.body._id,
+        _id:req.body.data._id,
         seats : {
             "$elemMatch" : {
-                floor : req.body.floor,
-                num : req.body.num,
-                col : req.body.col
+                floor : req.body.data.floor,
+                num : req.body.data.num,
+                col : req.body.data.col
             }
         }
         }, {$set:{
-            "seats.$.x":req.body.x,
-            "seats.$.y":req.body.y}}, (err,results) => {
+            "seats.$.x":req.body.data.x,
+            "seats.$.y":req.body.data.y}}, (err,results) => {
         if(err) {
             console.error(err);
             return res.status(500).json({message:'Theater Modify Error - '+err.message});
@@ -89,7 +89,7 @@ router.put('/update/coords', (req, res) => {
 //공연장을 수정한다.
 router.put('/update', (req, res) => {
     //공연장의 좌석 배치를 수정한다.
-    Theater.update({_id:req.body._id}, {$set: {seats_quantity : req.body.seats.length, seats : req.body.seats}}, (err, results) => {
+    Theater.update({_id:req.body.data._id}, {$set: {seats_quantity : req.body.data.seats.length, seats : req.body.data.seats}}, (err, results) => {
         if(err) {
             console.error(err);
             return res.status(500).json({message:'Theater Modify Error - '+err.message});
@@ -104,7 +104,7 @@ router.put('/update', (req, res) => {
 
 //공연장을 삭제한다.
 router.delete('/delete', (req, res) => {
-    Theater.remove({_id:req.body._id}, (err, results) => {
+    Theater.remove({_id:req.body.data._id}, (err, results) => {
         if(err) {
             console.error(err);
             return res.status(500).json({message:'Theater Delete Error - '+err.message});

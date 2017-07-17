@@ -24,10 +24,13 @@ class API_test_CRUD_Theater extends React.Component {
         let data = {
             name : this.state.create_input
         };
+        let wrapper = {
+            data : data
+        };
         return fetch('/api/theater/create', {
             method : 'POST',
             headers : {'Content-Type' : 'application/json'},
-            body : JSON.stringify(data)
+            body : JSON.stringify(wrapper)
         })
             .then(res =>{
                 if(res.ok)

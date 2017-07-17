@@ -1,3 +1,6 @@
+let axios = require('axios')
 
-let obc={a:1}
-console.log(typeof obc)
+
+axios.get('https://storage.googleapis.com/red_printing/ticket_R.svg').then((res) => {
+    console.log(res.data);
+})

@@ -30,7 +30,6 @@ class Buyers extends React.Component {
         });
         $('#Buyers').modal('hide');
     }
-
     ticket_onChange(customer) {
         let arr = this.state.customers;
         if(this.state.mode==='ticket') {
@@ -77,7 +76,6 @@ class Buyers extends React.Component {
     }
     choose() {
         if(this.state.customers.length >0) {
-
             this.props.chooseCustomers(this.state.mode, this.state.customers);
             this.props.onClose();
         }

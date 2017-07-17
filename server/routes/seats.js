@@ -9,11 +9,13 @@ router.get('/showtime/:showtime/date/:date', (req, res) => {
         showtime: req.params.showtime,
         date: new Date(parseInt(req.params.date))
     };
-
+    const wrapper = {
+        data : input
+    };
     fetch( `${req.protocol}://${req.get('Host')}`+'/api/showtime/crawl',{
         method : 'POST',
         headers : {'Content-Type' : 'application/json'},
-        body : JSON.stringify(input)
+        body : JSON.stringify(wrapper)
     })
         .then(response =>{
             if(response.ok)

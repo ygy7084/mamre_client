@@ -27,9 +27,7 @@ import Pre_ticket from './Pre_ticket';
 import Buyers from './Buyers';
 import Body from './Body';
 import LoaderModal from './LoaderModal';
-import SVG from './SVG';
-import modalSVG from './modalSVG';
-import SVGM from './SVGM'
+
 
 export {
     API_test_Excel_Reservation,
@@ -61,7 +59,5 @@ export {
     Buyers,
     Body,
     LoaderModal,
-    SVG,
-    modalSVG,
-    SVGM
+
 };

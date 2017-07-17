@@ -26,8 +26,6 @@ router.get('/print', (req, res) => {
 
 router.post('/ticketting', (req, res) => {
     const inputs = req.body;
-    const theater = inputs[0].theater;
-    const show = inputs[0].show;
     //inputs 안의 모든 데이터의 theater 와 show는 각각 같은 값으로 이뤄져야 함
 
     let bulk = [];
@@ -54,6 +52,18 @@ router.post('/ticketting', (req, res) => {
         if(bulk.length !== 0) {
             Reservation.bulkWrite(bulk).then((results) => {
 
+                //
+                console.log(req.headers['x-forwarded-for'])
+                console.log(req.connection.remoteAddress)
+                console.log(req.ip);
+                console.log(inputs);
+                fetch('http://'+req.ip+':3000/ticket', {
+                    method:'POST',
+                    headers:{'Content-Type':'application/json'},
+                    body:JSON.stringify(inputs)
+                }).then((res)=>{res.json()}).then((res)=>{console.log(res)});
+                //
+
                 return res.json({
                     data: {
                         wrong_data : wrong_data
@@ -63,13 +73,14 @@ router.post('/ticketting', (req, res) => {
         }
 });
 router.post('/createMany', (req, res) => {
-    const inputs = req.body;
+    const inputs = req.body.data;
     const theater = inputs[0].theater;
     const show = inputs[0].show;
     //inputs 안의 모든 데이터의 theater 와 show는 각각 같은 값으로 이뤄져야 함
 
     let bulk = [];
     let wrong_data = [];
+
 
     Showtime.find({theater:theater, show:show}).exec((err, results) => {
         const schedule = results[0].schedule.map((e) => {
@@ -216,7 +227,7 @@ router.get('/read', (req, res) => {
 
 //예매 내역을 수정한다.
 router.put('/update', (req, res) => {
-    Reservation.update({_id:req.body._id}, {$set: req.body}, (err, results) => {
+    Reservation.update({_id:req.body.data._id}, {$set: req.body.data}, (err, results) => {
         if(err) {
             console.error(err);
             return res.status(500).json({message:'Reservation Modify Error - '+err.message});
@@ -231,7 +242,7 @@ router.put('/update', (req, res) => {
 
 //예매 내역을 삭제한다.
 router.delete('/delete', (req, res) => {
-    Reservation.remove({_id:req.body._id}, (err, results) => {
+    Reservation.remove({_id:req.body.data._id}, (err, results) => {
         if(err) {
             console.error(err);
             return res.status(500).json({message:'Reservation Delete Error - '+err.message});

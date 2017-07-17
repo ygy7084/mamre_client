@@ -128,10 +128,13 @@ class API_test_Excel_Reservation extends React.Component {
             };
             data.push(reservation);
         }
+        let wrapper = {
+            data : data
+        };
         return fetch('/api/reservation/createMany',{
             method : 'POST',
             headers : {'Content-Type' : 'application/json'},
-            body : JSON.stringify(data)
+            body : JSON.stringify(wrapper)
         })
             .then(res =>{
                 if(res.ok)

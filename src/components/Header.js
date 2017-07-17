@@ -24,7 +24,7 @@ class Header extends React.Component {
         })
     }
     timePicker_onChange(e) {
-        this.props.onTimePick(e.target.value);
+        this.props.onTimePick(parseInt(e.target.value));
     }
     render() {
         return (
@@ -45,7 +45,7 @@ class Header extends React.Component {
                         {
                             this.props.Times ?
                                 this.props.Times.map((t) => {
-                                    return <option key={t.toString()}>{t.toLocaleTimeString()}</option>
+                                    return <option key={t.toString()} value={t.getTime()}>{t.toLocaleTimeString()}</option>
                                 })
                                 :
                                 null

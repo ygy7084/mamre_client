@@ -327,7 +327,7 @@ router.post('/ticketExcel', (req, res) => {
     const ws_data = [
         [ "단체명", "공연일시", "발권인원", "좌석등급", "판매가", "좌석번호"],
     ];
-    for(let r of req.body) {
+    for(let r of req.body.data) {
         ws_data.push([
             r.source,
             new Date(r.show_date).toLocaleString(),
@@ -353,7 +353,7 @@ router.post('/ticketExcel', (req, res) => {
 
 //엑셀 파싱 룰을 생성한다.
 router.post('/create', (req, res) => {
-    const excel = new Excel(req.body);
+    const excel = new Excel(req.body.data);
     excel.save((err, results) => {
         if(err) {
             console.error(err);
@@ -412,7 +412,7 @@ router.get('/read', (req, res) => {
 
 //엑셀 파싱 룰을 수정한다.
 router.put('/update', (req, res) => {
-    Excel.update({_id:req.body._id}, {$set: req.body.update}, (err, results) => {
+    Excel.update({_id:req.body.data._id}, {$set: req.body.data.update}, (err, results) => {
         if(err) {
             console.error(err);
             return res.status(500).json({message:'Excel Modify Error - '+err.message});
@@ -427,7 +427,7 @@ router.put('/update', (req, res) => {
 
 //엑셀 파싱 룰을 삭제한다.
 router.delete('/delete', (req, res) => {
-    Excel.remove({_id:req.body._id}, (err, results) => {
+    Excel.remove({_id:req.body.data._id}, (err, results) => {
         if(err) {
             console.error(err);
             return res.status(500).json({message:'Excel Delete Error - '+err.message});

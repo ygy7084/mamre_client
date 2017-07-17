@@ -167,7 +167,7 @@ class Right extends React.Component {
                     <button className={classNames({
                                 'btn':true,
                                 'btn-primary':true,
-                                'disabled':!this.props.seatsInfo
+                                'disabled':!this.props.seatsInfo.OK
                             })}
                             style={style.button1}
                             onClick={this.props.resetSeats}>다시선택</button>

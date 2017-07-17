@@ -11,7 +11,7 @@ router.post('/crawl', (req, res) => {
         return new mongoose.mongo.ObjectId(id);
     }
     Showtime.aggregate([
-        {$match: {_id: toMongoID(req.body.showtime)}},
+        {$match: {_id: toMongoID(req.body.data.showtime)}},
         {$project: {
             theater: true,
             show: true,
@@ -19,7 +19,7 @@ router.post('/crawl', (req, res) => {
                 input: '$schedule',
                 as: 'schedule',
                 cond: { $and : [
-                    {$eq: ['$$schedule.date', new Date(req.body.date)]}]
+                    {$eq: ['$$schedule.date', new Date(req.body.data.date)]}]
                 }},
             }}}
     ])
@@ -38,7 +38,7 @@ router.post('/crawl', (req, res) => {
 
 //공연 일정을 만든다.
 router.post('/create', (req, res) => {
-    const show = new Showtime(req.body);
+    const show = new Showtime(req.body.data);
     show.save((err, results) => {
         if(err) {
             console.error(err);
@@ -153,7 +153,7 @@ router.get('/read', (req, res) => {
 
 //공연 일정을 수정한다.
 router.put('/update', (req, res) => {
-    Showtime.update({_id:req.body._id}, {$set: req.body.update}, (err, results) => {
+    Showtime.update({_id:req.body.data._id}, {$set: req.body.data.update}, (err, results) => {
         if(err) {
             console.error(err);
             return res.status(500).json({message:'Showtime Modify Error - '+err.message});
@@ -168,7 +168,7 @@ router.put('/update', (req, res) => {
 
 //공연 일정을 삭제한다.
 router.delete('/delete', (req, res) => {
-    Showtime.remove({_id:req.body._id}, (err, results) => {
+    Showtime.remove({_id:req.body.data._id}, (err, results) => {
         if(err) {
             console.error(err);
             return res.status(500).json({message:'Showtime Delete Error - '+err.message});

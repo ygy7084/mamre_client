@@ -67,10 +67,13 @@ class SettingTheater extends React.Component {
             let data = {
                 name : this.state.theater_create_input
             };
+            let wrapper = {
+                data : data
+            };
             return fetch('/api/theater/create', {
                 method : 'POST',
                 headers : {'Content-Type' : 'application/json'},
-                body : JSON.stringify(data)
+                body : JSON.stringify(wrapper)
             })
                 .then(res =>{
                     if(res.ok)
