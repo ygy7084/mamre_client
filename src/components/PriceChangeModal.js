@@ -1,7 +1,7 @@
 import React from 'react';
 import classNames from 'classnames';
 
-class SmallModal extends React.Component {
+class PriceChangeModal extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
@@ -21,13 +21,13 @@ class SmallModal extends React.Component {
         nextProps.on ? this.openModal() : this.closeModal()
     }
     openModal() {
-        $('#SmallModal').modal('show');
+        $('#PriceChangeModal').modal('show');
     }
     closeModal() {
         this.setState({
             selected:'선택'
         });
-        $('#SmallModal').modal('hide');
+        $('#PriceChangeModal').modal('hide');
     }
     onChange(e) {
         this.setState({
@@ -115,4 +115,4 @@ const style = {
     }
 };
 
-export default SmallModal;
+export default PriceChangeModal;

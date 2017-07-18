@@ -129,7 +129,7 @@ router.post('/parse/reservation', upload.single('file'), (req, res) => {
      */
     //타 조회처럼 Excel.find().lean().exec()으로 조회시 검색 시간이 빨라지나,
     //파싱 데이터에 저장된 함수를 Mongoose가 함수로 파싱하지 못한다.
-    Excel.find({_id:req.body.data._id}).exec((err, results) => {
+    Excel.find({_id:req.body._id}).exec((err, results) => {
         if(err) {
             console.log(err);
             return res.status(500).json({message:'Excel Upload Error - '+err.message});
@@ -307,8 +307,8 @@ router.post('/parse/reservation', upload.single('file'), (req, res) => {
             output.ticket_quantity = row.ticket_quantity;
             output.ticket_code = row.ticket_code;
             output.ticket_price = row.ticket_price;
-            output.theater = req.body.data.theater;
-            output.show = req.body.data.show;
+            output.theater = req.body.theater;
+            output.show = req.body.show;
             output.printed = false;
             outputs.push(output);
         }

@@ -14,19 +14,15 @@ import Table from './Table';
 import ClickableTable from './ClickableTable';
 import InfoModal from './InfoModal';
 import ExcelModal from './ExcelModal';
-import ShowtimePicker from './ShowtimePicker';
 import Header from './Header';
 import Left from './Left';
-import PhoneSearch from'./PhoneSearch';
 import Right from './Right';
-import SeatPicker from './SeatPicker';
-import SelectedSeats from './SelectedSeats';
-import Summary from './Summary';
-import SmallModal from './SmallModal';
-import Pre_ticket from './Pre_ticket';
-import Buyers from './Buyers';
+import PriceChangeModal from './PriceChangeModal';
+import GroupTickettingModal from './GroupTickettingModal';
+import CustomerFindingModal from './CustomerFindingModal';
 import Body from './Body';
 import LoaderModal from './LoaderModal';
+import ErrorModal from './ErrorModal';
 
 
 export {
@@ -46,18 +42,13 @@ export {
     ClickableTable,
     InfoModal,
     ExcelModal,
-    ShowtimePicker,
     Header,
     Left,
-    PhoneSearch,
     Right,
-    SeatPicker,
-    SelectedSeats,
-    Summary,
-    SmallModal,
-    Pre_ticket,
-    Buyers,
+    PriceChangeModal,
+    GroupTickettingModal,
+    CustomerFindingModal,
     Body,
     LoaderModal,
-
+    ErrorModal
 };

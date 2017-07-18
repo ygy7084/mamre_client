@@ -1,7 +1,6 @@
 import express from 'express';
 import mongoose from 'mongoose';
 import {Reservation, Showtime} from '../models';
-import PDFDocument from 'pdfkit';
 
 const router = express.Router();
 
@@ -56,6 +55,94 @@ router.post('/ticketting', (req, res) => {
             });
         }
 });
+
+router.post('/groupTicketting', (req, res) => {
+    const inputs = req.body.data;
+    const theater = inputs[0].theater;
+    const show = inputs[0].show;
+    //inputs 안의 모든 데이터의 theater 와 show는 각각 같은 값으로 이뤄져야 함
+
+    Showtime.find({theater:theater, show:show}).exec((err, results) => {
+        const schedule = results[0].schedule.map((e) => {
+            return new Date(e.date).getTime();
+        });
+
+        const insertBulk = [];
+        const wrong_data = [];
+
+        for (let o of inputs) {
+            if(schedule.indexOf(new Date(o.show_date).getTime())<0)
+                wrong_data.push(o);
+            else {
+                o.ticket_code = mongoose.Types.ObjectId();
+                insertBulk.push(o);
+            }
+        }
+
+        if(insertBulk.length !== 0) {
+            Reservation.insertMany(insertBulk).then((results) => {
+                const updateBulk = [];
+                for (let inserted of results)
+                    updateBulk.push({
+                        updateOne: {
+                            filter: {
+                                show: inserted.show,
+                                theater: inserted.theater,
+                                'schedule.date': inserted.show_date
+                            },
+                            update: {$addToSet: {"schedule.$.reservations": {_id: inserted._id}}}
+                        }
+                    });
+
+                if(updateBulk.length!==0) {
+                    Showtime.bulkWrite(updateBulk).then((results) => {
+                        return res.json({
+                            data: results
+                        })
+                    }).catch((e) => {
+                        return res.status(500).json({error:e,message:'발권 에러 : reservation을 showtime에 입력하는데 오류가 있습니다.'});
+                    });
+                }
+                else
+                    return res.json({
+                        data: {
+                            wrong_data: wrong_data
+                        }
+                    })
+            }).catch((e) => {
+
+                const errIndex = e.index;
+
+                if(!errIndex)
+                    return res.status(500).json({message:'이미 예매 또는 발권된 좌석이 있어, 발권이 불가능합니다.'});
+
+                const deleteBulk = [];
+                for(let i=0;i<errIndex;i++)
+                    deleteBulk.push({
+                        deleteOne : {
+                            filter : {
+                                ticket_code:insertBulk[i].ticket_code
+                            }
+                        }
+                    });
+
+                Reservation.bulkWrite(deleteBulk).then(() => {
+                    return res.status(500).json({message:'이미 예매 또는 발권된 좌석이 있어, 발권이 불가능합니다.'});
+                }).catch((e) => {
+                    return res.status(500).json({error:e, message:'알수없는오류'});
+                });
+            });
+        }
+        else
+            return res.json({
+                data: {
+                    wrong_data : wrong_data
+                }
+            })
+
+    });
+});
+
 router.post('/createMany', (req, res) => {
     const inputs = req.body.data;
     const theater = inputs[0].theater;
@@ -147,6 +234,77 @@ router.post('/createMany', (req, res) => {
                 }
             })
         }
+    });
+});
+
+router.delete('/delete/source', (req, res) => {
+    const data = req.body.data;
+
+    Reservation.find({
+        theater:data.theater,
+        show:data.show,
+        source:data.source}).exec((err, results) => {
+
+        let bulk = [];
+        let ids = [];
+        for (let i of results) {
+            bulk.push({
+                updateOne: {
+                    filter: {
+                        show: i.show, theater: i.theater,'schedule.reservations._id':i._id
+                    },
+                    update: {$pull: {"schedule.$.reservations": {_id: i._id}}}
+                }
+            });
+            ids.push(i._id);
+        }
+        if(bulk.length) {
+            Showtime.bulkWrite(bulk).then((results) => {
+                Reservation.remove({'_id': {'$in': ids}}, (err, results) => {
+                    return res.json({
+                        data: results
+                    })
+                });
+            });
+        }else
+            return res.json({
+                data: {}
+            })
+    });
+});
+
+router.delete('/delete/all', (req, res) => {
+    const data = req.body.data;
+
+    Reservation.find({
+        theater:data.theater,
+        show:data.show}).exec((err, results) => {
+
+        let bulk = [];
+        let ids = [];
+        for (let i of results) {
+            bulk.push({
+                updateOne: {
+                    filter: {
+                        show: i.show, theater: i.theater,'schedule.reservations._id':i._id
+                    },
+                    update: {$pull: {"schedule.$.reservations": {_id: i._id}}}
+                }
+            });
+            ids.push(i._id);
+        }
+        if(bulk.length) {
+            Showtime.bulkWrite(bulk).then((results) => {
+                Reservation.remove({'_id': {'$in': ids}}, (err, results) => {
+                    return res.json({
+                        data: results
+                    })
+                });
+            });
+        }else
+            return res.json({
+                data: {}
+            })
     });
 });
 

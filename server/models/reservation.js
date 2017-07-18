@@ -39,10 +39,20 @@ const Reservation = new Schema({
     ticket_price : Number,
     theater : {type : Schema.Types.ObjectId, ref:'theater'},
     show : {type : Schema.Types.ObjectId, ref:'show'},
-    printed : Boolean
+    printed : Boolean,
+    delivered : Boolean
 });
 
-Reservation.index({source:1, show_date:1, ticket_code:1}, {unique:true});
+Reservation.index({source:1, show_date:1, ticket_code:1}, {unique:true, sparse:true});
+Reservation.index(
+    {theater:1, show:1, show_date:1,'seat_position.floor':1,'seat_position.col':1,'seat_position.num':1},
+    {unique:true,
+        partialFilterExpression:
+            {
+                'seat_position.floor': { $exists: true },
+                'seat_position.col': { $exists: true },
+                'seat_position.num': { $exists: true },
+            }});
 
 const model = mongoose.model('reservation', Reservation);
 

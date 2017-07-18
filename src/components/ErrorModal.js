@@ -1,6 +1,6 @@
 import React from 'react';
 
-class LoaderModal extends React.Component {
+class ErrorModal extends React.Component {
     constructor(props) {
         super(props);
         this.openModal = this.openModal.bind(this);
@@ -13,36 +13,30 @@ class LoaderModal extends React.Component {
         nextProps.on ? this.openModal() : this.closeModal()
     }
     openModal() {
-        $('#LoaderModal').modal('show');
+        $('#ErrorModal').modal('show');
     }
     closeModal() {
-        $('#LoaderModal').modal('hide');
+        $('#ErrorModal').modal('hide');
     }
 
     render() {
         return (
             <div className="modal"
-                 id='LoaderModal'
+                 id='ErrorModal'
                  data-keyboard="false" //esc 금지
                  data-backdrop="static"//바깥 클릭 기본 프로시져 금지
                  tabIndex="-1"
                  role="dialog">
 
                 <div className="modal-dialog modal-sm"
-                     style={style.dialog}
                      role="document">
 
-                    <h2 className="modal-title" style={style.title}>
-                        {this.props.title}
-                    </h2>
+                    <div style={style.wrapper}>
+                        <h2 className="modal-title" style={style.title}>
+                            {this.props.title}
+                        </h2>
 
-                    <div className="spinner-box">
-                        <div className="spinner-axis">
-                            <div className="spinner">
-                                <div className="spinner-inner">
-                                </div>
-                            </div>
-                        </div>
+                        <button className='btn btn-warning btn-lg' onClick={this.props.onClose}>확인</button>
                     </div>
                 </div>
             </div>
@@ -51,11 +45,13 @@ class LoaderModal extends React.Component {
 }
 
 const style = {
+    wrapper:{
+        textAlign:'center',
+    },
     title:{
         color:'white',
-        textAlign:'center',
-        marginTop:'125px'
+        margin:'50px'
     }
 };
 
-export default LoaderModal;
+export default ErrorModal;

@@ -5,21 +5,21 @@ class Right extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            findBuyers_input :'',
+            findCustomers_input :'',
         };
-        this.findBuyers_onInput = this.findBuyers_onInput.bind(this);
-        this.findBuyers = this.findBuyers.bind(this);
+        this.findCustomers_onInput = this.findCustomers_onInput.bind(this);
+        this.findCustomers = this.findCustomers.bind(this);
         this.ticketting = this.ticketting.bind(this);
     }
 
-    findBuyers_onInput(e) {
+    findCustomers_onInput(e) {
         this.setState({
-            findBuyers_input : e.target.value
+            findCustomers_input : e.target.value
         });
     }
-    findBuyers() {
-        if(this.state.findBuyers_input!=='' && this.props.seatsInfo)
-            this.props.findBuyers(this.state.findBuyers_input);
+    findCustomers() {
+        if(this.state.findCustomers_input!=='' && this.props.seatsInfo)
+            this.props.findCustomers(this.state.findCustomers_input);
     }
     ticketting(flag) {
         if(flag) {
@@ -57,45 +57,45 @@ class Right extends React.Component {
                             <input
                                 type="text"
                                 className="form-control"
-                                onChange={this.findBuyers_onInput}
-                                value={this.state.findBuyers_input} />
+                                onChange={this.findCustomers_onInput}
+                                value={this.state.findCustomers_input} />
                             <span className="input-group-btn">
                                 <button
                                     className={classNames({
                                         'btn':true,
                                         'btn-primary':true,
-                                        'disabled':this.state.findBuyers_input==='' || !this.props.seatsInfo
+                                        'disabled':this.state.findCustomers_input==='' || !this.props.seatsInfo
                                     })}
                                     style={style.phoneButton}
                                     type="button"
-                                    onClick={this.findBuyers}>검색</button>
+                                    onClick={this.findCustomers}>검색</button>
                             </span>
                         </div>
                     </div>
-                    {this.props.buyers_picked.length!==0 ?
+                    {this.props.customers_picked.length!==0 ?
                         <div style={style.summary}>
                             <table>
-                                <thead style={style.buyersTable.thead}>
-                                    <tr style={style.buyersTable.header}>
-                                        <th style={style.buyersTable.header_th}>번호</th>
-                                        <th style={style.buyersTable.header_th}>구매처</th>
-                                        <th style={style.buyersTable.header_th}>이름</th>
-                                        <th style={style.buyersTable.header_th}>좌석등급</th>
-                                        <th style={style.buyersTable.header_th}>좌석번호</th>
+                                <thead style={style.customersTable.thead}>
+                                    <tr style={style.customersTable.header}>
+                                        <th style={style.customersTable.header_th}>번호</th>
+                                        <th style={style.customersTable.header_th}>구매처</th>
+                                        <th style={style.customersTable.header_th}>이름</th>
+                                        <th style={style.customersTable.header_th}>좌석등급</th>
+                                        <th style={style.customersTable.header_th}>좌석번호</th>
                                     </tr>
                                 </thead>
-                                <tbody style={style.buyersTable.tbody}>
+                                <tbody style={style.customersTable.tbody}>
                                 {
-                                    this.props.buyers_picked.map((buyer, index)=> {
+                                    this.props.customers_picked.map((customer, index)=> {
                                         return(
-                                            <tr style={style.buyersTable.body} key={index}>
-                                                <td style={style.buyersTable.body_td}>{index+1}</td>
-                                                <td style={style.buyersTable.body_td}>{buyer.source}</td>
-                                                <td style={style.buyersTable.body_td}>{buyer.customer_name}</td>
-                                                <td style={style.buyersTable.body_td}>{buyer.seat_class}</td>
-                                                <td style={style.buyersTable.body_td}>{buyer.seat_position ?
-                                                    buyer.seat_position.col+'열 '+
-                                                    buyer.seat_position.num+'번' : '미배정'}</td>
+                                            <tr style={style.customersTable.body} key={index}>
+                                                <td style={style.customersTable.body_td}>{index+1}</td>
+                                                <td style={style.customersTable.body_td}>{customer.source}</td>
+                                                <td style={style.customersTable.body_td}>{customer.customer_name}</td>
+                                                <td style={style.customersTable.body_td}>{customer.seat_class}</td>
+                                                <td style={style.customersTable.body_td}>{customer.seat_position ?
+                                                    customer.seat_position.col+'열 '+
+                                                    customer.seat_position.num+'번' : '미배정'}</td>
                                             </tr>
                                         )
                                     })
@@ -183,10 +183,10 @@ class Right extends React.Component {
                     <button className={classNames({
                                 'btn':true,
                                 'btn-primary':true,
-                                'disabled':!this.props.seatsInfo.OK||this.props.buyers_picked.length
+                                'disabled':!this.props.seatsInfo.OK||this.props.customers_picked.length
                             })}
                             style={style.button1}
-                            onClick={this.props.preTicketOn}>사전발권</button>
+                            onClick={(e) => {this.props.groupTickettingModal(true)}}>사전발권</button>
                     <button className={classNames({
                                 'btn':true,
                                 'btn-primary':true,
@@ -195,7 +195,7 @@ class Right extends React.Component {
                             style={style.button2}
                             onClick={(e) => {
                                 this.props.seatsInfo.OK ?
-                                this.props.buyers_picked.length? this.ticketting(false) : this.ticketting(true)
+                                this.props.customers_picked.length? this.ticketting(false) : this.ticketting(true)
                             :null}}>발권</button>
                 </div>
             </div>
@@ -255,7 +255,7 @@ const style = {
         width:'370px'
     },
 
-    buyersTable:{
+    customersTable:{
         thead:{
             display:'block'
         },

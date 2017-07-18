@@ -1,7 +1,7 @@
 import React from 'react';
 import classNames from 'classnames';
 
-class Pre_ticket extends React.Component {
+class GroupTickettingModal extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
@@ -26,14 +26,14 @@ class Pre_ticket extends React.Component {
         nextProps.on ? this.openModal() : this.closeModal()
     }
     openModal() {
-        $('#Pre_ticket').modal('show');
+        $('#GroupTickettingModal').modal('show');
     }
     closeModal() {
         this.setState({
             groupNameInput:'',
             priceInput:''
         });
-        $('#Pre_ticket').modal('hide');
+        $('#GroupTickettingModal').modal('hide');
     }
 
     groupNameInput_onChange(e) {
@@ -51,8 +51,8 @@ class Pre_ticket extends React.Component {
             this.state.groupNameInput.length&&
             this.state.priceInput&&
             this.state.priceInput.length) {
-            this.props.preTicketting('단체', this.state.groupNameInput, this.state.priceInput);
-            this.props.onClose();
+            this.props.groupTicketting(this.state.groupNameInput, this.state.priceInput);
+            this.props.groupTickettingModal(false);
         }
     }
     ticketExcel() {
@@ -67,7 +67,7 @@ class Pre_ticket extends React.Component {
         return (
             <div
                 className="modal fade"
-                id='Pre_ticket'
+                id='GroupTickettingModal'
                 data-keyboard="false" //esc 금지
                 data-backdrop="static"//바깥 클릭 기본 프로시져 금지
                 tabIndex="-1">
@@ -75,7 +75,7 @@ class Pre_ticket extends React.Component {
                     <div className="modal-content" style={style.content}>
                         <div className="modal-header" style={style.header}>
                             <button type="button"
-                                    onClick={this.props.onClose}
+                                    onClick={(e) =>{this.props.groupTickettingModal(false);}}
                                     className="close">
                                 <span>&times;</span>
                             </button>
@@ -170,4 +170,4 @@ const style = {
         color:'white'
     }
 };
-export default Pre_ticket;
+export default GroupTickettingModal;

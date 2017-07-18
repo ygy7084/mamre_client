@@ -1,7 +1,7 @@
 import React from 'react';
 import classNames from 'classnames';
 
-class Buyers extends React.Component {
+class CustomerFindingModal extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
@@ -21,14 +21,14 @@ class Buyers extends React.Component {
         nextProps.on ? this.openModal() : this.closeModal()
     }
     openModal() {
-        $('#Buyers').modal('show');
+        $('#CustomerFindingModal').modal('show');
     }
     closeModal() {
         this.setState({
             mode : null,
             customers : []
         });
-        $('#Buyers').modal('hide');
+        $('#CustomerFindingModal').modal('hide');
     }
     ticket_onChange(customer) {
         let arr = this.state.customers;
@@ -84,7 +84,7 @@ class Buyers extends React.Component {
         return (
             <div
                 className="modal fade"
-                id='Buyers'
+                id='CustomerFindingModal'
                 data-keyboard="false" //esc 금지
                 data-backdrop="static"//바깥 클릭 기본 프로시져 금지
                 tabIndex="-1">
@@ -220,4 +220,4 @@ const style = {
         height:'15px'
     }
 };
-export default Buyers;
+export default CustomerFindingModal;

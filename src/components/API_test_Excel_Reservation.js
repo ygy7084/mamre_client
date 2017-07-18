@@ -15,6 +15,51 @@ class API_test_Excel_Reservation extends React.Component {
         this.uploadFile = this.uploadFile.bind(this);
         this.handleChange = this.handleChange.bind(this);
         this.saveExcel = this.saveExcel.bind(this);
+        this.deleteSource = this.deleteSource.bind(this);
+        this.deleteAll = this.deleteAll.bind(this);
+    }
+    deleteSource() {
+        const wrapper = {
+            data : {
+                theater : this.state.theater_picked._id,
+                show    : this.state.show_picked._id,
+                source  : this.state.excel_picked.source
+            }
+        };
+        return fetch('/api/reservation/delete/source', {
+            method : 'DELETE',
+            headers : {'Content-Type' : 'application/json'},
+            body : JSON.stringify(wrapper)
+        })
+            .then(res =>{
+                if(res.ok)
+                    return res.json();
+                else
+                    return res.json().then(err => { throw err; })})
+            .then(res => {
+                console.log(res);
+            })
+    }
+    deleteAll() {
+        const wrapper = {
+            data : {
+                theater : this.state.theater_picked._id,
+                show    : this.state.show_picked._id
+            }
+        };
+        return fetch('/api/reservation/delete/all', {
+            method : 'DELETE',
+            headers : {'Content-Type' : 'application/json'},
+            body : JSON.stringify(wrapper)
+        })
+            .then(res =>{
+                if(res.ok)
+                    return res.json();
+                else
+                    return res.json().then(err => { throw err; })})
+            .then(res => {
+                console.log(res);
+            })
     }
     uploadFile(file, url) {
 
@@ -219,6 +264,8 @@ class API_test_Excel_Reservation extends React.Component {
                     </label>
                     <input type='submit' value='업로드'/>
                 </form>
+                <button className='btn btn-info' onClick={this.deleteSource}>소스 삭제</button>
+                <button className='btn btn-info' onClick={this.deleteAll}>전체 삭제</button>
                 {ExcelInput}
             </div>
         )
