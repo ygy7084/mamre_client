@@ -28,11 +28,16 @@ router.post('/crawl', (req, res) => {
             console.error(err);
             return res.status(500).json({message:'Showtime Crawler Error - '+err.message});
         }
-        cralwer(results[0].schedule[0].url).then((results) => {
-            return res.json({
-                data : results
+        if(results[0] && results[0].schedule[0])
+            cralwer(results[0].schedule[0].url).then((results) => {
+                return res.json({
+                    data : results
+                });
             });
-        });
+        else
+            return res.json({
+                data : null
+            });
     });
 });
 

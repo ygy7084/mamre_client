@@ -116,10 +116,13 @@ class SettingTheater extends React.Component {
         let data = {
             _id : this.state.theater_picked._id
         };
+        let wrapper = {
+            data : data
+        };
         return fetch('/api/theater/delete', {
             method : 'DELETE',
             headers : {'Content-Type' : 'application/json'},
-            body : JSON.stringify(data)
+            body : JSON.stringify(wrapper)
         })
             .then(res =>{
                 if(res.ok)
@@ -190,10 +193,13 @@ class SettingTheater extends React.Component {
             _id : this.state.theater_picked._id,
             seats : this.state.parsed_excel
         };
+        let wrapper = {
+            data : data
+        };
         return fetch('/api/theater/update',{
             method : 'PUT',
             headers : {'Content-Type' : 'application/json'},
-            body : JSON.stringify(data)
+            body : JSON.stringify(wrapper)
         })
             .then(res =>{
                 if(res.ok)

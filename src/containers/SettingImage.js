@@ -142,10 +142,14 @@ class SettingImage extends React.Component {
             x : this.state.mouse.x,
             y : this.state.mouse.y
         };
+
+        let wrapper = {
+            data : data
+        };
         fetch('/api/theater/update/coords',{
             method : 'PUT',
             headers : {'Content-Type' : 'application/json'},
-            body : JSON.stringify(data)
+            body : JSON.stringify(wrapper)
         })
             .then(res =>{
                 if(res.ok)

@@ -9,6 +9,7 @@ class Right extends React.Component {
         };
         this.findBuyers_onInput = this.findBuyers_onInput.bind(this);
         this.findBuyers = this.findBuyers.bind(this);
+        this.ticketting = this.ticketting.bind(this);
     }
 
     findBuyers_onInput(e) {
@@ -16,10 +17,18 @@ class Right extends React.Component {
             findBuyers_input : e.target.value
         });
     }
-
     findBuyers() {
         if(this.state.findBuyers_input!=='' && this.props.seatsInfo)
             this.props.findBuyers(this.state.findBuyers_input);
+    }
+    ticketting(flag) {
+        if(flag) {
+            //좌석만 티켓팅
+            this.props.preTicketting('현장', null, null);
+        }else {
+            //구매자 선택 후 좌석 티켓팅
+            this.props.ticketting('현장');
+        }
     }
     render() {
 
@@ -186,7 +195,7 @@ class Right extends React.Component {
                             style={style.button2}
                             onClick={(e) => {
                                 this.props.seatsInfo.OK ?
-                                this.props.buyers_picked.length? this.props.ticketting() : this.props.preTicketting()
+                                this.props.buyers_picked.length? this.ticketting(false) : this.ticketting(true)
                             :null}}>발권</button>
                 </div>
             </div>

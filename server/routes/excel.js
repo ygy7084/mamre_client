@@ -1,6 +1,6 @@
 import express from 'express';
 import multer from 'multer';
-import {Excel} from '../models';
+import {Excel, Showtime, Reservation} from '../models';
 import XLSX from 'xlsx';
 import moment from 'moment-timezone';
 import tmp from 'tmp';
@@ -129,7 +129,7 @@ router.post('/parse/reservation', upload.single('file'), (req, res) => {
      */
     //타 조회처럼 Excel.find().lean().exec()으로 조회시 검색 시간이 빨라지나,
     //파싱 데이터에 저장된 함수를 Mongoose가 함수로 파싱하지 못한다.
-    Excel.find({_id:req.body._id}).exec((err, results) => {
+    Excel.find({_id:req.body.data._id}).exec((err, results) => {
         if(err) {
             console.log(err);
             return res.status(500).json({message:'Excel Upload Error - '+err.message});
@@ -307,8 +307,8 @@ router.post('/parse/reservation', upload.single('file'), (req, res) => {
             output.ticket_quantity = row.ticket_quantity;
             output.ticket_code = row.ticket_code;
             output.ticket_price = row.ticket_price;
-            output.theater = req.body.theater;
-            output.show = req.body.show;
+            output.theater = req.body.data.theater;
+            output.show = req.body.data.show;
             output.printed = false;
             outputs.push(output);
         }
@@ -348,6 +348,191 @@ router.post('/ticketExcel', (req, res) => {
         XLSX.writeFile(wb, path);
         return res.download(path, 'tickets.xlsx');
     });
+
+});
+
+router.get('/showtime/:showtime/date/:date', (req, res) => {
+    const input = {
+        showtime: req.params.showtime,
+        date: new Date(parseInt(req.params.date))
+    };
+
+    Showtime.find({_id:input.showtime})
+        .populate('theater')
+        .exec((err, results) => {
+            if (err) {
+                console.error(err);
+                return res.status(500).json({message: 'Data Read Error - ' + err.message});
+            }
+            if (!results || results.length < 1) {
+                return res.status(500).json({message: 'Data Read Error - ' + '공연일정(Showtime)을 _id로 찾을 수 없습니다.'});
+            }
+            if (!results[0].theater) {
+                return res.status(500).json({message: 'Data Read Error - ' + '공연장(Theater)을 _id로 찾을 수 없습니다.'});
+            }
+
+            const schedules = results[0].schedule;
+            const theater_seats = results[0].theater.seats;
+            const Arr = [];
+
+            let i=0;
+            for (let seat of theater_seats) {
+                Arr.push({
+                    num                      :++i,
+                    show_date                :input.date.toLocaleString(),
+                    ticket_quantity          :1, // 좌석 당 예약은 하나
+                    seat_class               :seat.seat_class,
+                    ticket_price             :seat.seat_class==='VIP' ? 50000 : (seat.seat_class==='R' ? 40000 : undefined),
+                    seat_position            :{col : seat.col, num :seat.num},
+                    source                   :undefined,
+                    group_name               :undefined,
+                    customer_name            :undefined,
+                    customer_phone           :undefined
+                });
+            }
+
+            let schedule;
+            for (let s of schedules)
+                if (new Date(s.date).getTime() === parseInt(req.params.date))
+                    schedule = s;
+
+            const wrapper = {
+                data : input
+            };
+            fetch( `${req.protocol}://${req.get('Host')}`+'/api/showtime/crawl',{
+                method : 'POST',
+                headers : {'Content-Type' : 'application/json'},
+                body : JSON.stringify(wrapper)
+            })
+                .then(response =>{
+                    if(response.ok)
+                        return response.json();
+                    else
+                        return response.json().then(err => { throw err; })})
+                .then(response => {
+                    const crawled_seats = response.data;
+
+                    const reserved_seats = theater_seats.filter((ts) => {
+                        return crawled_seats.filter((cs) => {
+                                return ts.col===cs.col && ts.floor === cs.floor && ts.num === cs.num
+                            }).length===0;
+                    });
+
+                    for(let c of reserved_seats) {
+                        let obj = Arr.find((item) => {
+                            if (
+                                item.seat_position.col === c.col &&
+                                item.seat_position.num === c.num
+                            )
+                                return true;
+                        });
+                        if(obj) {
+                            obj.source = '인터파크';
+                            obj.customer_name = '미확인';
+                            obj.customer_phone = '미확인';
+                        }
+                        else {
+                            console.log(c);
+                        }
+                    }
+
+                    Reservation.populate(schedule.reservations, {path: '_id'}, (err, results) => {
+                        results.forEach((r) => {
+                                let reservation = r._id; // _id로 객체가 감싸여 있다,
+                            //mongoose documnet to javascript object
+                            if( reservation &&
+                                reservation.seat_position &&
+                                reservation.seat_position.col &&
+                                reservation.seat_position.num) {
+
+                                let obj = Arr.find((item) => {
+                                    if(
+                                        item.seat_position.col === reservation.seat_position.col &&
+                                        item.seat_position.num === reservation.seat_position.num
+                                    )
+                                        return true;
+                                });
+
+                                if(obj) {
+                                    obj.customer_name =  reservation.customer_name;
+                                    obj.customer_phone = reservation.customer_phone;
+                                    obj.group_name = reservation.group_name;
+                                    obj.source = reservation.source;
+                                    obj.ticket_price = reservation.ticket_price;
+                                }
+                                else {
+                                    console.log(reservation.seat_position);
+                                }
+                            }
+                        });
+
+                        const wb = XLSX.utils.book_new();
+                        const ws_name = "reservations";
+                        const ws_data = [
+                            [ "일련번호", "공연일시", "발권인원", "좌석등급", "판매가", "좌석번호", "구매처", "단체명", "구매자성명", "전화번호"],
+                        ];
+
+                        for(let r of Arr) {
+                            for(let prop in r)
+                                r[prop] = r[prop] ? r[prop] : '';
+
+                            ws_data.push([
+                                String(r.num),
+                                new Date(r.show_date).toLocaleDateString()+' '+new Date(r.show_date).toLocaleTimeString(),
+                                String(r.ticket_quantity),
+                                String(r.seat_class),
+                                String(r.ticket_price),
+                                r.seat_position.col+'열 '+r.seat_position.num+'번',
+                                r.source,
+                                r.group_name,
+                                r.customer_name,
+                                String(r.customer_phone)
+                            ]);
+                        }
+
+                        const ws = XLSX.utils.aoa_to_sheet(ws_data);
+
+                        wb.SheetNames.push(ws_name);
+
+                        wb.Sheets[ws_name] = ws;
+
+                        tmp.file(function _tempFileCreated(err, path, fd, cleanupCallback) {
+                            if (err) throw err;
+                            XLSX.writeFile(wb, path);
+                            return res.download(path, 'reservations.xlsx');
+                        });
+                });
+            });
+        });
+
+//////////////////////////
+
+    //             const wb = XLSX.utils.book_new();
+    // const ws_name = "reservations";
+    // const ws_data = [
+    //     [ "일련번호", "공연일시", "발권인원", "좌석등급", "판매가", "좌석번호", "구매처", "단체명", "구매자성명", "전화번호"],
+    // ];
+    // for(let r of req.body.data) {
+    //     ws_data.push([
+    //         r.source,
+    //         new Date(r.show_date).toLocaleString(),
+    //         r.ticket_quantity,
+    //         r.seat_class,
+    //         r.ticket_price,
+    //         r.seat_position.col+'열 '+r.seat_position.num+'번'
+    //     ]);
+    // }
+    // const ws = XLSX.utils.aoa_to_sheet(ws_data);
+    //
+    // wb.SheetNames.push(ws_name);
+    //
+    // wb.Sheets[ws_name] = ws;
+    //
+    // tmp.file(function _tempFileCreated(err, path, fd, cleanupCallback) {
+    //     if (err) throw err;
+    //     XLSX.writeFile(wb, path);
+    //     return res.download(path, 'tickets.xlsx');
+    // });
 
 });
 

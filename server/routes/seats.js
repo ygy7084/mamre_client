@@ -1,8 +1,16 @@
 import express from 'express';
-import mongoose from 'mongoose';
 import {Showtime, Reservation, Theater} from '../models';
 
 const router = express.Router();
+
+router.post('/available', (req, res) => {
+    const input = {
+        showtime : req.body.showtime,
+        date : req.body.date,
+        seats : req.body.seats
+    };
+
+});
 
 router.get('/showtime/:showtime/date/:date', (req, res) => {
     const input = {

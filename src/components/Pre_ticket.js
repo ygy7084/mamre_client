@@ -5,10 +5,10 @@ class Pre_ticket extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            sourceInput:'',
+            groupNameInput:'',
             priceInput:''
         };
-        this.sourceInput_onChange = this.sourceInput_onChange.bind(this);
+        this.groupNameInput_onChange = this.groupNameInput_onChange.bind(this);
         this.priceInput_onChange = this.priceInput_onChange.bind(this);
         this.ticketting = this.ticketting.bind(this);
         this.openModal = this.openModal.bind(this);
@@ -20,7 +20,7 @@ class Pre_ticket extends React.Component {
     }
     componentWillReceiveProps(nextProps) {
         this.setState({
-            sourceInput:'',
+            groupNameInput:'',
             priceInput:''
         });
         nextProps.on ? this.openModal() : this.closeModal()
@@ -30,15 +30,15 @@ class Pre_ticket extends React.Component {
     }
     closeModal() {
         this.setState({
-            sourceInput:'',
+            groupNameInput:'',
             priceInput:''
         });
         $('#Pre_ticket').modal('hide');
     }
 
-    sourceInput_onChange(e) {
+    groupNameInput_onChange(e) {
         this.setState({
-            sourceInput:e.target.value
+            groupNameInput:e.target.value
         })
     }
     priceInput_onChange(e) {
@@ -47,20 +47,20 @@ class Pre_ticket extends React.Component {
         })
     }
     ticketting() {
-        if(this.state.sourceInput&&
-            this.state.sourceInput.length&&
+        if(this.state.groupNameInput&&
+            this.state.groupNameInput.length&&
             this.state.priceInput&&
             this.state.priceInput.length) {
-            this.props.preTicketting(this.state.sourceInput, this.state.priceInput);
+            this.props.preTicketting('단체', this.state.groupNameInput, this.state.priceInput);
             this.props.onClose();
         }
     }
     ticketExcel() {
-        if(this.state.sourceInput&&
-            this.state.sourceInput.length&&
+        if(this.state.groupNameInput&&
+            this.state.groupNameInput.length&&
             this.state.priceInput&&
             this.state.priceInput.length) {
-            this.props.ticketExcel(this.state.sourceInput, this.state.priceInput);
+            this.props.ticketExcel(this.state.groupNameInput, this.state.priceInput);
         }
     }
     render() {
@@ -88,8 +88,8 @@ class Pre_ticket extends React.Component {
                                 </label>
                                 <input type='text'
                                        style={style.input}
-                                       onChange={this.sourceInput_onChange}
-                                       value={this.state.sourceInput}/>
+                                       onChange={this.groupNameInput_onChange}
+                                       value={this.state.groupNameInput}/>
                             </div>
                             <div>
                             <label>
@@ -107,8 +107,8 @@ class Pre_ticket extends React.Component {
                                     className={classNames({
                                         'btn':true,
                                         'btn-default':true,
-                                        'disabled':!(this.state.sourceInput&&
-                                                     this.state.sourceInput.length&&
+                                        'disabled':!(this.state.groupNameInput&&
+                                                     this.state.groupNameInput.length&&
                                                      this.state.priceInput&&
                                                      this.state.priceInput.length)
                                     })}
@@ -120,8 +120,8 @@ class Pre_ticket extends React.Component {
                                     className={classNames({
                                         'btn':true,
                                         'btn-default':true,
-                                        'disabled':!(this.state.sourceInput&&
-                                        this.state.sourceInput.length&&
+                                        'disabled':!(this.state.groupNameInput&&
+                                        this.state.groupNameInput.length&&
                                         this.state.priceInput&&
                                         this.state.priceInput.length)
                                     })}

@@ -115,10 +115,13 @@ class SettingTheater extends React.Component {
             theater : this.state.theater_picked._id,
             show : this.state.show_picked._id
         };
+        let wrapper = {
+            data : data
+        };
         return fetch('/api/showtime/create', {
             method : 'POST',
             headers : {'Content-Type' : 'application/json'},
-            body : JSON.stringify(data)
+            body : JSON.stringify(wrapper)
         })
             .then(res =>{
                 if(res.ok)
@@ -159,10 +162,13 @@ class SettingTheater extends React.Component {
         let data = {
             _id : this.state.showtime_picked._id
         };
+        let wrapper = {
+            data : data
+        };
         return fetch('/api/showtime/delete', {
             method : 'DELETE',
             headers : {'Content-Type' : 'application/json'},
-            body : JSON.stringify(data)
+            body : JSON.stringify(wrapper)
         })
             .then(res =>{
                 if(res.ok)
@@ -234,10 +240,13 @@ class SettingTheater extends React.Component {
                 schedule : this.state.parsed_excel
             }
         };
+        let wrapper = {
+            data : data
+        };
         return fetch('/api/showtime/update',{
             method : 'PUT',
             headers : {'Content-Type' : 'application/json'},
-            body : JSON.stringify(data)
+            body : JSON.stringify(wrapper)
         })
             .then(res =>{
                 if(res.ok)
@@ -384,6 +393,8 @@ class SettingTheater extends React.Component {
             };
             showtimes_populated.push(o);
         }
+        console.log(this.state);
+        console.log(showtimes_populated);
 
         return (
             <SideContents>

@@ -5,6 +5,7 @@ import mongoose from 'mongoose';
  source,              //공연 예매 출처
  customer_name,       //고객 성함
  customer_phone,      //고객 번호(뒷 4자리)
+ group_name,          //단체 명
  show_date : '',      //공연 날짜 및 시간 (DATE 객체)
  seat_class : '',     //좌석 등급
  seat_position : {    //좌석 위치 -> 없을 시 null
@@ -25,6 +26,7 @@ const Reservation = new Schema({
     source : String,
     customer_name : String,
     customer_phone : String,
+    group_name : String,
     show_date : Date,
     seat_class : String,
     seat_position : {

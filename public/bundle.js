@@ -43615,10 +43615,10 @@ var Pre_ticket = function (_React$Component) {
         var _this = _possibleConstructorReturn(this, (Pre_ticket.__proto__ || Object.getPrototypeOf(Pre_ticket)).call(this, props));
 
         _this.state = {
-            sourceInput: '',
+            groupNameInput: '',
             priceInput: ''
         };
-        _this.sourceInput_onChange = _this.sourceInput_onChange.bind(_this);
+        _this.groupNameInput_onChange = _this.groupNameInput_onChange.bind(_this);
         _this.priceInput_onChange = _this.priceInput_onChange.bind(_this);
         _this.ticketting = _this.ticketting.bind(_this);
         _this.openModal = _this.openModal.bind(_this);
@@ -43636,7 +43636,7 @@ var Pre_ticket = function (_React$Component) {
         key: 'componentWillReceiveProps',
         value: function componentWillReceiveProps(nextProps) {
             this.setState({
-                sourceInput: '',
+                groupNameInput: '',
                 priceInput: ''
             });
             nextProps.on ? this.openModal() : this.closeModal();
@@ -43650,16 +43650,16 @@ var Pre_ticket = function (_React$Component) {
         key: 'closeModal',
         value: function closeModal() {
             this.setState({
-                sourceInput: '',
+                groupNameInput: '',
                 priceInput: ''
             });
             $('#Pre_ticket').modal('hide');
         }
     }, {
-        key: 'sourceInput_onChange',
-        value: function sourceInput_onChange(e) {
+        key: 'groupNameInput_onChange',
+        value: function groupNameInput_onChange(e) {
             this.setState({
-                sourceInput: e.target.value
+                groupNameInput: e.target.value
             });
         }
     }, {
@@ -43672,16 +43672,16 @@ var Pre_ticket = function (_React$Component) {
     }, {
         key: 'ticketting',
         value: function ticketting() {
-            if (this.state.sourceInput && this.state.sourceInput.length && this.state.priceInput && this.state.priceInput.length) {
-                this.props.preTicketting(this.state.sourceInput, this.state.priceInput);
+            if (this.state.groupNameInput && this.state.groupNameInput.length && this.state.priceInput && this.state.priceInput.length) {
+                this.props.preTicketting('단체', this.state.groupNameInput, this.state.priceInput);
                 this.props.onClose();
             }
         }
     }, {
         key: 'ticketExcel',
         value: function ticketExcel() {
-            if (this.state.sourceInput && this.state.sourceInput.length && this.state.priceInput && this.state.priceInput.length) {
-                this.props.ticketExcel(this.state.sourceInput, this.state.priceInput);
+            if (this.state.groupNameInput && this.state.groupNameInput.length && this.state.priceInput && this.state.priceInput.length) {
+                this.props.ticketExcel(this.state.groupNameInput, this.state.priceInput);
             }
         }
     }, {
@@ -43734,8 +43734,8 @@ var Pre_ticket = function (_React$Component) {
                                 ),
                                 _react2.default.createElement('input', { type: 'text',
                                     style: style.input,
-                                    onChange: this.sourceInput_onChange,
-                                    value: this.state.sourceInput })
+                                    onChange: this.groupNameInput_onChange,
+                                    value: this.state.groupNameInput })
                             ),
                             _react2.default.createElement(
                                 'div',
@@ -43761,7 +43761,7 @@ var Pre_ticket = function (_React$Component) {
                                     className: (0, _classnames2.default)({
                                         'btn': true,
                                         'btn-default': true,
-                                        'disabled': !(this.state.sourceInput && this.state.sourceInput.length && this.state.priceInput && this.state.priceInput.length)
+                                        'disabled': !(this.state.groupNameInput && this.state.groupNameInput.length && this.state.priceInput && this.state.priceInput.length)
                                     }),
                                     onClick: this.ticketting },
                                 '\uBC1C\uAD8C'
@@ -43773,7 +43773,7 @@ var Pre_ticket = function (_React$Component) {
                                     className: (0, _classnames2.default)({
                                         'btn': true,
                                         'btn-default': true,
-                                        'disabled': !(this.state.sourceInput && this.state.sourceInput.length && this.state.priceInput && this.state.priceInput.length)
+                                        'disabled': !(this.state.groupNameInput && this.state.groupNameInput.length && this.state.priceInput && this.state.priceInput.length)
                                     }),
                                     onClick: this.ticketExcel },
                                 '\uC5D1\uC140 \uCD9C\uB825'
@@ -43867,6 +43867,7 @@ var Right = function (_React$Component) {
         };
         _this.findBuyers_onInput = _this.findBuyers_onInput.bind(_this);
         _this.findBuyers = _this.findBuyers.bind(_this);
+        _this.ticketting = _this.ticketting.bind(_this);
         return _this;
     }
 
@@ -43881,6 +43882,17 @@ var Right = function (_React$Component) {
         key: 'findBuyers',
         value: function findBuyers() {
             if (this.state.findBuyers_input !== '' && this.props.seatsInfo) this.props.findBuyers(this.state.findBuyers_input);
+        }
+    }, {
+        key: 'ticketting',
+        value: function ticketting(flag) {
+            if (flag) {
+                //좌석만 티켓팅
+                this.props.preTicketting('현장', null, null);
+            } else {
+                //구매자 선택 후 좌석 티켓팅
+                this.props.ticketting('현장');
+            }
         }
     }, {
         key: 'render',
@@ -44185,7 +44197,7 @@ var Right = function (_React$Component) {
                             }),
                             style: style.button2,
                             onClick: function onClick(e) {
-                                _this2.props.seatsInfo.OK ? _this2.props.buyers_picked.length ? _this2.props.ticketting() : _this2.props.preTicketting() : null;
+                                _this2.props.seatsInfo.OK ? _this2.props.buyers_picked.length ? _this2.ticketting(false) : _this2.ticketting(true) : null;
                             } },
                         '\uBC1C\uAD8C'
                     )
@@ -45353,6 +45365,7 @@ var Main = function (_React$Component) {
         _this.InfoOfSelectedSeats = _this.InfoOfSelectedSeats.bind(_this);
         _this.preTicketOn = _this.preTicketOn.bind(_this);
         _this.ticketExcel = _this.ticketExcel.bind(_this);
+        _this.getAllExcel = _this.getAllExcel.bind(_this);
         return _this;
     }
 
@@ -45517,7 +45530,7 @@ var Main = function (_React$Component) {
         }
     }, {
         key: 'preTicketting',
-        value: function preTicketting(source, price) {
+        value: function preTicketting(source, group_name, price) {
             var _this3 = this;
 
             var data = [];
@@ -45532,6 +45545,7 @@ var Main = function (_React$Component) {
                     var reservation = {
                         input_date: new Date(),
                         source: source,
+                        group_name: group_name ? group_name : undefined,
                         customer_name: null,
                         customer_phone: null,
                         show_date: this.state.time_picked,
@@ -45584,17 +45598,17 @@ var Main = function (_React$Component) {
                     data: data,
                     combine: false
                 };
-                console.log('FETCHING');
-                fetch('http://localhost:8081/ticket', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(wrapper)
-                }).then(function (res) {
-                    return res.json();
-                }).then(function (res) {
-                    _this3.loadSeats(_this3.state.time_picked);
-                });
+                // fetch('http://localhost:8081/ticket', {
+                //     method:'POST',
+                //     headers:{'Content-Type':'application/json'},
+                //     body:JSON.stringify(wrapper)
+                // })
+                //     .then((res) => res.json())
+                //     .then((res)=>{
+                //         this.loadSeats(this.state.time_picked);
+                // });
                 //
+                _this3.loadSeats(_this3.state.time_picked);
             }).catch(function (err) {
                 var message = err;
                 if (err.message && err.message !== '') message = err.message;
@@ -45665,7 +45679,7 @@ var Main = function (_React$Component) {
         }
     }, {
         key: 'ticketting',
-        value: function ticketting() {
+        value: function ticketting(source) {
             var _this5 = this;
 
             var seats_picked = JSON.parse(JSON.stringify(this.state.seats_picked));
@@ -45735,6 +45749,7 @@ var Main = function (_React$Component) {
 
                     var reservation = {
                         _id: _buyer._id,
+                        source: source,
                         input_date: new Date(),
                         seat_position: _buyer.seat_position,
                         printed: true,
@@ -46287,6 +46302,21 @@ var Main = function (_React$Component) {
             });
         }
     }, {
+        key: 'getAllExcel',
+        value: function getAllExcel() {
+            return fetch('/api/excel/showtime/' + this.state.showtime._id + '/date/' + this.state.time_picked, {
+                method: 'GET'
+            }).then(function (res) {
+                return res.blob();
+            }).then(function (blob) {
+                (0, _reactFileDownload2.default)(blob, 'reservations.xlsx');
+            }).catch(function (err) {
+                var message = err;
+                if (err.message && err.message !== '') message = err.message;
+                console.log(message);
+            });
+        }
+    }, {
         key: 'render',
         value: function render() {
             var _this9 = this;
@@ -46344,7 +46374,12 @@ var Main = function (_React$Component) {
                     basePrice: this.state.price_picked ? this.state.price_picked.seat_class === 'VIP' ? 50000 : 40000 : 0 }),
                 _react2.default.createElement(_components.LoaderModal, {
                     on: this.state.loaderModalOn,
-                    title: this.state.loaderModalTitle })
+                    title: this.state.loaderModalTitle }),
+                _react2.default.createElement(
+                    'button',
+                    { className: 'btn btn-info', style: { position: 'absolute', top: '800px' }, onClick: this.getAllExcel },
+                    '\uC5D1\uC140 \uC804\uBD80 \uC5BB\uAE30 \uD14C\uC2A4\uD2B8'
+                )
             );
         }
     }]);
@@ -46633,10 +46668,14 @@ var SettingImage = function (_React$Component) {
                 x: this.state.mouse.x,
                 y: this.state.mouse.y
             };
+
+            var wrapper = {
+                data: data
+            };
             fetch('/api/theater/update/coords', {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
+                body: JSON.stringify(wrapper)
             }).then(function (res) {
                 if (res.ok) return res.json();else return res.json().then(function (err) {
                     throw err;
@@ -47079,10 +47118,13 @@ var SettingShow = function (_React$Component) {
             var data = {
                 _id: this.state.show_picked._id
             };
+            var wrapper = {
+                data: data
+            };
             return fetch('/api/show/delete', {
                 method: 'DELETE',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
+                body: JSON.stringify(wrapper)
             }).then(function (res) {
                 if (res.ok) return res.json();else return res.json().then(function (err) {
                     throw err;
@@ -47331,10 +47373,13 @@ var SettingTheater = function (_React$Component) {
                 theater: this.state.theater_picked._id,
                 show: this.state.show_picked._id
             };
+            var wrapper = {
+                data: data
+            };
             return fetch('/api/showtime/create', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
+                body: JSON.stringify(wrapper)
             }).then(function (res) {
                 if (res.ok) return res.json();else return res.json().then(function (err) {
                     throw err;
@@ -47371,10 +47416,13 @@ var SettingTheater = function (_React$Component) {
             var data = {
                 _id: this.state.showtime_picked._id
             };
+            var wrapper = {
+                data: data
+            };
             return fetch('/api/showtime/delete', {
                 method: 'DELETE',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
+                body: JSON.stringify(wrapper)
             }).then(function (res) {
                 if (res.ok) return res.json();else return res.json().then(function (err) {
                     throw err;
@@ -47442,10 +47490,13 @@ var SettingTheater = function (_React$Component) {
                     schedule: this.state.parsed_excel
                 }
             };
+            var wrapper = {
+                data: data
+            };
             return fetch('/api/showtime/update', {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
+                body: JSON.stringify(wrapper)
             }).then(function (res) {
                 if (res.ok) return res.json();else return res.json().then(function (err) {
                     throw err;
@@ -47745,6 +47796,9 @@ var SettingTheater = function (_React$Component) {
                 }
             }
 
+            console.log(this.state);
+            console.log(showtimes_populated);
+
             return _react2.default.createElement(
                 _components.SideContents,
                 null,
@@ -47917,10 +47971,13 @@ var SettingTheater = function (_React$Component) {
             var data = {
                 _id: this.state.theater_picked._id
             };
+            var wrapper = {
+                data: data
+            };
             return fetch('/api/theater/delete', {
                 method: 'DELETE',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
+                body: JSON.stringify(wrapper)
             }).then(function (res) {
                 if (res.ok) return res.json();else return res.json().then(function (err) {
                     throw err;
@@ -47986,10 +48043,13 @@ var SettingTheater = function (_React$Component) {
                 _id: this.state.theater_picked._id,
                 seats: this.state.parsed_excel
             };
+            var wrapper = {
+                data: data
+            };
             return fetch('/api/theater/update', {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
+                body: JSON.stringify(wrapper)
             }).then(function (res) {
                 if (res.ok) return res.json();else return res.json().then(function (err) {
                     throw err;

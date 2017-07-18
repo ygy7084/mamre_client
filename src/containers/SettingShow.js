@@ -113,10 +113,13 @@ class SettingShow extends React.Component {
         let data = {
             _id : this.state.show_picked._id
         };
+        let wrapper = {
+            data : data
+        };
         return fetch('/api/show/delete', {
             method : 'DELETE',
             headers : {'Content-Type' : 'application/json'},
-            body : JSON.stringify(data)
+            body : JSON.stringify(wrapper)
         })
             .then(res =>{
                 if(res.ok)

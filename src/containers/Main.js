@@ -53,6 +53,7 @@ class Main extends React.Component {
         this.InfoOfSelectedSeats = this.InfoOfSelectedSeats.bind(this);
         this.preTicketOn = this.preTicketOn.bind(this);
         this.ticketExcel = this.ticketExcel.bind(this);
+        this.getAllExcel = this.getAllExcel.bind(this);
     }
     componentDidMount() {
         let theater,show,showtime;
@@ -156,12 +157,25 @@ class Main extends React.Component {
                 buyers_picked: [],
             });
     }
-    preTicketting(source, price) {
+    // groupTicketting() {
+    //
+    // }
+    // preTicketting2() {
+    //
+    // }
+    // pretickettingWithoutBuyer(){
+    //
+    // }
+    // tickettingWithoutBuyer() {
+    //
+    // }
+    preTicketting(source, group_name, price) {
         let data = [];
-        for(let p of this.state.seats_picked) {
+            for(let p of this.state.seats_picked) {
             let reservation = {
                 input_date: new Date(),
-                source: source,
+                source : source,
+                group_name: group_name ? group_name : undefined,
                 customer_name:  null,
                 customer_phone: null,
                 show_date: this.state.time_picked,
@@ -201,16 +215,17 @@ class Main extends React.Component {
                     data : data,
                     combine :false
                 };
-                fetch('http://localhost:8081/ticket', {
-                    method:'POST',
-                    headers:{'Content-Type':'application/json'},
-                    body:JSON.stringify(wrapper)
-                })
-                    .then((res) => res.json())
-                    .then((res)=>{
-                        this.loadSeats(this.state.time_picked);
-                });
+                // fetch('http://localhost:8081/ticket', {
+                //     method:'POST',
+                //     headers:{'Content-Type':'application/json'},
+                //     body:JSON.stringify(wrapper)
+                // })
+                //     .then((res) => res.json())
+                //     .then((res)=>{
+                //         this.loadSeats(this.state.time_picked);
+                // });
                 //
+                this.loadSeats(this.state.time_picked);
             })
             .catch((err) => {
                 let message = err;
@@ -265,7 +280,7 @@ class Main extends React.Component {
                 });
         }
     }
-    ticketting() {
+    ticketting(source) {
         let seats_picked = JSON.parse(JSON.stringify(this.state.seats_picked));
         let buyers_picked = JSON.parse(JSON.stringify(this.state.buyers_picked));
         let data = [];
@@ -286,6 +301,7 @@ class Main extends React.Component {
         for(let buyer of buyers_picked) {
             let reservation = {
                 _id:buyer._id,
+                source:source,
                 input_date: new Date(),
                 seat_position: buyer.seat_position,
                 printed: true,
@@ -615,6 +631,21 @@ class Main extends React.Component {
                 console.log(message);
             });
     }
+    getAllExcel() {
+        return fetch('/api/excel/showtime/'+this.state.showtime._id+'/date/'+this.state.time_picked,{
+            method : 'GET'
+        })
+            .then(res=> res.blob())
+            .then((blob) => {
+                FileDownload(blob, 'reservations.xlsx');
+            })
+            .catch((err) => {
+                let message = err;
+                if(err.message && err.message!=='')
+                    message = err.message;
+                console.log(message);
+            });
+    }
     render() {
         return (
             <div>
@@ -640,6 +671,7 @@ class Main extends React.Component {
                         seatsInfo={this.InfoOfSelectedSeats()}
                         preTicketOn={this.preTicketOn}
                         IsSeatsLoaded={this.state.seats}/>
+
                 </Body>
                 <Pre_ticket
                     preTicketting={this.preTicketting}
@@ -665,6 +697,18 @@ class Main extends React.Component {
                 <LoaderModal
                     on={this.state.loaderModalOn}
                     title={this.state.loaderModalTitle}/>
+
+
+
+
+
+                <button className="btn btn-info" style={{position:'absolute',top:'800px'}} onClick={this.getAllExcel}>엑셀 전부 얻기 테스트</button>
+
+
+
+
+
+
             </div>
         )
     }
