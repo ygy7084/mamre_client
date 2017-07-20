@@ -43204,7 +43204,7 @@ var Header = function (_React$Component) {
         var _this = _possibleConstructorReturn(this, (Header.__proto__ || Object.getPrototypeOf(Header)).call(this, props));
 
         _this.state = {
-            date: (0, _moment2.default)()
+            date: undefined
         };
         _this.datePicker_onChange = _this.datePicker_onChange.bind(_this);
         _this.timePicker_onChange = _this.timePicker_onChange.bind(_this);
@@ -45784,7 +45784,8 @@ var Main = function (_React$Component) {
 
             autoPrint: true,
             autoCombine: true,
-            reTickettingStart: false
+            reTickettingStart: false,
+            preTickettingStart: false
         };
         _this.datePick = _this.datePick.bind(_this);
         _this.timePick = _this.timePick.bind(_this);
@@ -45958,7 +45959,12 @@ var Main = function (_React$Component) {
     }, {
         key: 'chooseCustomer',
         value: function chooseCustomer(mode, customers) {
-            if (mode === 'preTicket') return false;
+            if (mode === 'preTicket') {
+                this.setState({ preTickettingStart: true });
+                this.loadSeats(this.state.time_picked, true);
+            }
+
+            // return false;
             //좌석 설정해주는 창이 뜨도록!
             //this.preTickettingWithoutSeats(customers);
             else this.setState({
@@ -47133,7 +47139,7 @@ var Main = function (_React$Component) {
         }
     }, {
         key: 'loadSeats',
-        value: function loadSeats(time) {
+        value: function loadSeats(time, pre) {
             var _this12 = this;
 
             this.setState({
@@ -47141,7 +47147,31 @@ var Main = function (_React$Component) {
                 LoaderModal_title: new Date(time).toLocaleString()
             });
 
-            return fetch('/api/seats/showtime/' + this.state.showtime._id + '/date/' + time, {
+            if (this.state.preTickettingStart || pre) {
+                return fetch('/api/seats/pre/showtime/' + this.state.showtime._id + '/date/' + time, {
+                    method: 'GET'
+                }).then(function (res) {
+                    if (res.ok) return res.json();else return res.json().then(function (err) {
+                        throw err;
+                    });
+                }).then(function (res) {
+
+                    console.log(res.data.printed_seats);
+                    var seats = res.data.printed_seats;
+                    _this12.setState({
+                        loaded: true,
+                        time_picked: time,
+                        seats: seats,
+                        seats_picked: [],
+                        price_picked: null,
+                        LoaderModal_on: false
+                    });
+                }).catch(function (err) {
+                    var message = err;
+                    if (err.message && err.message !== '') message = err.message;
+                    console.log(message);
+                });
+            } else return fetch('/api/seats/showtime/' + this.state.showtime._id + '/date/' + time, {
                 method: 'GET'
             }).then(function (res) {
                 if (res.ok) return res.json();else return res.json().then(function (err) {

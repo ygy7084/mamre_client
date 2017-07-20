@@ -154,8 +154,12 @@ class Main extends React.Component {
             });
     }
     chooseCustomer(mode, customers) {
-        if(mode==='preTicket')
-            return false;
+        if(mode==='preTicket') {
+            this.setState({preTickettingStart: true});
+            this.loadSeats(this.state.time_picked, true);
+        }
+
+            // return false;
             //좌석 설정해주는 창이 뜨도록!
             //this.preTickettingWithoutSeats(customers);
         else
@@ -1042,59 +1046,89 @@ class Main extends React.Component {
         this.setState({reTickettingStart:boolean});
         this.loadSeats(this.state.time_picked);
     }
-    loadSeats(time) {
+    loadSeats(time, pre) {
 
         this.setState({
             LoaderModal_on:true,
             LoaderModal_title:new Date(time).toLocaleString()
         });
 
-        return fetch('/api/seats/showtime/'+this.state.showtime._id+'/date/'+time,{
-            method : 'GET'
-        })
-            .then(res =>{
-                if(res.ok)
-                    return res.json();
-                else
-                    return res.json().then(err => { throw err; })})
-            .then(res => {
-                /*
-                가격 정보를 저장한다.
-                 */
-                for(let seat of res.data.not_reserved_seats) {
-                    if(seat.seat_class==='VIP')
-                        seat.price = 50000;
-                    else if(seat.seat_class==='R')
-                        seat.price = 40000;
-                    else
-                        throw new Error('좌석 등급을 식별할 수 없습니다. - '+seat.seat_class);
-                }
-
-                let seats;
-                if(this.state.reTickettingStart)
-                    seats = res.data.reserved_seats;
-                else
-                    seats = res.data.not_reserved_seats;
-
-                console.log(res.data);
-
-                this.setState({
-                    loaded:true,
-                    time_picked:time,
-                    seats:seats,
-                    seats_picked:[],
-                    price_picked: null,
-                    customers: [],
-                    customers_picked: [],
-                    LoaderModal_on:false
-                });
+        if(this.state.preTickettingStart || pre) {
+            return fetch('/api/seats/pre/showtime/'+this.state.showtime._id+'/date/'+time,{
+                method : 'GET'
             })
-            .catch((err) => {
-                let message = err;
-                if(err.message && err.message!=='')
-                    message = err.message;
-                console.log(message);
-            });
+                .then(res =>{
+                    if(res.ok)
+                        return res.json();
+                    else
+                        return res.json().then(err => { throw err; })})
+                .then(res => {
+
+                    console.log(res.data.printed_seats);
+                    const seats = res.data.printed_seats;
+                    this.setState({
+                        loaded:true,
+                        time_picked:time,
+                        seats:seats,
+                        seats_picked:[],
+                        price_picked: null,
+                        LoaderModal_on:false
+                    });
+                })
+                .catch((err) => {
+                    let message = err;
+                    if(err.message && err.message!=='')
+                        message = err.message;
+                    console.log(message);
+                });
+        }
+        else
+            return fetch('/api/seats/showtime/'+this.state.showtime._id+'/date/'+time,{
+                method : 'GET'
+            })
+                .then(res =>{
+                    if(res.ok)
+                        return res.json();
+                    else
+                        return res.json().then(err => { throw err; })})
+                .then(res => {
+                    /*
+                    가격 정보를 저장한다.
+                     */
+                    for(let seat of res.data.not_reserved_seats) {
+                        if(seat.seat_class==='VIP')
+                            seat.price = 50000;
+                        else if(seat.seat_class==='R')
+                            seat.price = 40000;
+                        else
+                            throw new Error('좌석 등급을 식별할 수 없습니다. - '+seat.seat_class);
+                    }
+
+                    let seats;
+                    if(this.state.reTickettingStart)
+                        seats = res.data.reserved_seats;
+                    else
+                        seats = res.data.not_reserved_seats;
+
+                    console.log(res.data);
+
+                    this.setState({
+                        loaded:true,
+                        time_picked:time,
+                        seats:seats,
+                        seats_picked:[],
+                        price_picked: null,
+                        customers: [],
+                        customers_picked: [],
+                        LoaderModal_on:false
+                    });
+                })
+                .catch((err) => {
+                    let message = err;
+                    if(err.message && err.message!=='')
+                        message = err.message;
+                    console.log(message);
+                });
     }
     pickSeat(seats) {
         let seats_picked = JSON.parse(JSON.stringify(this.state.seats_picked));

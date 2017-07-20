@@ -12,7 +12,7 @@ class Header extends React.Component {
     constructor(props){
         super(props);
         this.state={
-            date:moment()
+            date:undefined
         };
         this.datePicker_onChange = this.datePicker_onChange.bind(this);
         this.timePicker_onChange = this.timePicker_onChange.bind(this);
