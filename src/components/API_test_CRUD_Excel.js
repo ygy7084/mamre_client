@@ -1,6 +1,6 @@
 import React from 'react';
 
-class API_test_CRUD_Show extends React.Component {
+class API_test_CRUD_Excel extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
@@ -111,10 +111,13 @@ class API_test_CRUD_Show extends React.Component {
                 parsing_rule:this.state.excel_picked_update.parsing_rule
             }
         };
+        let wrapper = {
+            data : data
+        };
         return fetch('/api/excel/update', {
             method : 'PUT',
             headers : {'Content-Type' : 'application/json'},
-            body : JSON.stringify(data)
+            body : JSON.stringify(wrapper)
         })
             .then(res =>{
                 if(res.ok)
@@ -215,17 +218,17 @@ class API_test_CRUD_Show extends React.Component {
                 {
                     rule : 'seat_position_floor',
                     desc : '좌석 층 수',
-                    init : 'Null (미지정)'
+                    init : 'Undefined (미지정)'
                 },
                 {
                     rule : 'seat_position_col',
                     desc : '좌석 열',
-                    init : 'Null (미지정)'
+                    init : 'Undefined (미지정)'
                 },
                 {
                     rule : 'seat_position_num',
                     desc : '좌석 번호',
-                    init : 'Null (미지정)'
+                    init : 'Undefined (미지정)'
                 },
                 {
                     rule : 'ticket_quantity',
@@ -239,6 +242,11 @@ class API_test_CRUD_Show extends React.Component {
                 {
                     rule : 'ticket_price',
                     desc : '티켓 가격'
+                },
+                {
+                    rule : 'discount',
+                    desc : '할인 내역',
+                    init : 'Undefined (미지정)'
                 }
             ];
             excel_picked =
@@ -302,4 +310,4 @@ class API_test_CRUD_Show extends React.Component {
     }
 }
 
-export default API_test_CRUD_Show;
+export default API_test_CRUD_Excel;

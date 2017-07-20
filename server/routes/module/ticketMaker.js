@@ -66,10 +66,8 @@ const ticketMaker = (info) => {
                 let seats;
                 let seat_class = data[0].seat_class;
                 let ticket_price = data[0].ticket_price;
-                if(!ticket_price || ticket_price==='') {
+                if(ticket_price!==0 && !ticket_price || ticket_price==='')
                     ticket_price = seat_class==='VIP' ? '50000' : '40000';
-                }
-
 
                 seats = {
                     seat_class: seat_class,

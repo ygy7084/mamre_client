@@ -6,6 +6,7 @@ import {
 
 import {
     API_test_Excel_Reservation,
+    API_test_Excel_NaverReservation,
     API_test_Excel_Showtime,
     API_test_Excel_Theater,
     API_test_CRUD_Theater,
@@ -23,6 +24,7 @@ class API_test extends React.Component {
             <div>
                 <ul>
                     <li><Link to="/test/API_test_Excel_Reservation">API_test_Excel_Reservation</Link></li>
+                    <li><Link to="/test/API_test_Excel_NaverReservation">API_test_Excel_NaverReservation</Link></li>
                     <li><Link to="/test/API_test_Excel_Showtime">API_test_Excel_Showtime</Link></li>
                     <li><Link to="/test/API_test_Excel_Theater">API_test_Excel_Theater</Link></li>
                     <li><Link to="/test/API_test_CRUD_Theater">API_test_CRUD_Theater</Link></li>
@@ -35,6 +37,7 @@ class API_test extends React.Component {
 
                 <hr/>
                 <Route path="/test/API_test_Excel_Reservation" component={API_test_Excel_Reservation}/>
+                <Route path="/test/API_test_Excel_NaverReservation" component={API_test_Excel_NaverReservation}/>
                 <Route path="/test/API_test_Excel_Showtime" component={API_test_Excel_Showtime}/>
                 <Route path="/test/API_test_Excel_Theater" component={API_test_Excel_Theater}/>
                 <Route path="/test/API_test_CRUD_Theater" component={API_test_CRUD_Theater}/>

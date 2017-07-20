@@ -42,7 +42,8 @@ class Main extends React.Component {
 
             autoPrint : true,
             autoCombine : true,
-            reTickettingStart : false
+            reTickettingStart : false,
+            preTickettingStart : false
         };
         this.datePick = this.datePick.bind(this);
         this.timePick = this.timePick.bind(this);
@@ -1260,9 +1261,11 @@ class Main extends React.Component {
         if(this.state.autoCombine && this.state.seats_picked.length<=10) {
             combine = true;
             const firstSeatClass = this.state.seats_picked[0].seat_class;
-            for(let seat of this.state.seats_picked)
-                if(seat.seat_class !== firstSeatClass)
+            const firstSeatPrice = this.state.seats_picked[0].price;
+            for(let seat of this.state.seats_picked) {
+                if (seat.seat_class !== firstSeatClass || seat.price !== firstSeatPrice)
                     combine = false;
+            }
         }
         cb(combine);
     }

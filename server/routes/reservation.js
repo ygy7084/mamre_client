@@ -409,16 +409,15 @@ router.post('/createMany', (req, res) => {
             if(schedule.indexOf(new Date(o.show_date).toLocaleString())<0)
                 wrong_data.push(o);
             else {
-                if (o.seat_position) //단체구매
+
+                //인터파크
+                if (o.seat_position)
                     bulk.push({
                         //source,show_date,show,theater,seat_position 없으면 insert 있으면 nothing
                         updateOne: {
                             filter: {
-                                group_name:o.group_name,
                                 source: o.source,
                                 show_date: new Date(o.show_date),
-                                show: o.show,
-                                theater: o.theater,
                                 seat_position: o.seat_position,
                                 ticket_code: o.ticket_code ? o.ticket_code : mongoose.Types.ObjectId()
                             },

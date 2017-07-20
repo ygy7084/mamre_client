@@ -89,7 +89,12 @@ router.put('/update/coords', (req, res) => {
 //공연장을 수정한다.
 router.put('/update', (req, res) => {
     //공연장의 좌석 배치를 수정한다.
-    Theater.update({_id:req.body.data._id}, {$set: {seats_quantity : req.body.data.seats.length, seats : req.body.data.seats}}, (err, results) => {
+    for(let i=1;i<=req.body.data.seats.length;i++)
+        req.body.data.seats[i-1].serialNum = i;
+    Theater.update({_id:req.body.data._id},
+        {$set:
+            {seats_quantity : req.body.data.seats.length,
+            seats : req.body.data.seats}}, (err, results) => {
         if(err) {
             console.error(err);
             return res.status(500).json({message:'Theater Modify Error - '+err.message});

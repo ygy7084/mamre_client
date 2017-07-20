@@ -162,6 +162,7 @@ class Right extends React.Component {
                                 <thead style={style.priceTable.thead}>
                                     <tr style={style.priceTable.header}>
                                         <th style={style.priceTable.header_th}>번호</th>
+                                        <th style={style.priceTable.header_th}>고유번호</th>
                                         <th style={style.priceTable.header_th}>좌석등급</th>
                                         <th style={style.priceTable.header_th}>좌석번호</th>
                                         <th style={style.priceTable.header_th}>가격</th>
@@ -173,6 +174,7 @@ class Right extends React.Component {
                                         return(
                                             <tr style={style.priceTable.body} key={index}>
                                                 <td style={style.priceTable.body_td}>{index+1}</td>
+                                                <td style={style.priceTable.body_td}>{seat.serialNum}</td>
                                                 <td style={style.priceTable.body_td}>{seat.seat_class}</td>
                                                 <td style={style.priceTable.body_td}>{seat.col+'열 '+seat.num+'번 '}</td>
                                                 <td style={style.priceTable.body_td}>
@@ -332,14 +334,14 @@ const style = {
             textAlign:'center',
             fontWeight:'normal',
             padding:'3px',
-            width:'120px'
+            width:'96px'
         },
         body:{
             background:'rgb(245,245,245)',
             borderTop:'1px solid #ddd'
         },
         body_td:{
-            width:'120px',
+            width:'96px',
             padding:'3px',
         }
         ,

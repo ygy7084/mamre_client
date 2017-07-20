@@ -14,6 +14,7 @@ const Theater = new Schema({
     seats : [
         {
             _id:false,
+            serialNum:Number,
             floor:String,
             col:String,
             num:String,

@@ -37,7 +37,7 @@ mongoose_function(mongoose);
      ticket_quantity,        //티켓 수량
      ticket_code,            //티켓 코드
      ticket_price,           //티켓 가격
-     discount
+     discount                //할인 내역
 */
 const Schema = mongoose.Schema;
 const Excel = new Schema({
@@ -99,7 +99,10 @@ const Excel = new Schema({
             field : String,
             code : Function
         },
-
+        discount : {
+            field : String,
+            code : Function
+        },
     }
 });
 

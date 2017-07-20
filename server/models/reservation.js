@@ -40,7 +40,8 @@ const Reservation = new Schema({
     theater : {type : Schema.Types.ObjectId, ref:'theater'},
     show : {type : Schema.Types.ObjectId, ref:'show'},
     printed : Boolean,
-    delivered : Boolean
+    delivered : Boolean,
+    discount : String
 });
 
 Reservation.index({source:1, show_date:1, ticket_code:1}, {unique:true, sparse:true});

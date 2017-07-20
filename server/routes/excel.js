@@ -81,8 +81,10 @@ router.post('/parse/theater', upload.single('file'), (req, res) => {
     for(let r = Excel_sheet_range.s.r;r<=Excel_sheet_range.e.r;r++) {
         let seat = {};
         for(let col in columns_parser) {
-            let cell_address = XLSX.utils.encode_cell({c: columns_parser[col], r: r});
-            seat[col] = Excel_sheet[cell_address].v;
+
+                let cell_address = XLSX.utils.encode_cell({c: columns_parser[col], r: r});
+                seat[col] = Excel_sheet[cell_address].v;
+
         }
         seats.push(seat);
     }
@@ -125,7 +127,8 @@ router.post('/parse/reservation', upload.single('file'), (req, res) => {
      seat_position_num,     //없을 시 undefined - 좌석 번호
      ticket_quantity,       //없을 시 1 - 티켓 수량
      ticket_code,           //필수 - 예약 번호, 주문 번호, 티켓 번호 등 각 사이트별 코드
-     ticket_price           //필수 - 티켓 가격
+     ticket_price,          //필수 - 티켓 가격
+     discount               //없을시 undefined
      */
     //타 조회처럼 Excel.find().lean().exec()으로 조회시 검색 시간이 빨라지나,
     //파싱 데이터에 저장된 함수를 Mongoose가 함수로 파싱하지 못한다.
@@ -135,7 +138,8 @@ router.post('/parse/reservation', upload.single('file'), (req, res) => {
             return res.status(500).json({message:'Excel Upload Error - '+err.message});
         }
 
-        let excel = results[0];
+        let excel = results[0]; //단순 object가 아니라 mongoose object 파일이다.(함수 정보 존
+
 
         //<3. 파싱>
         //필드가 들어있는 row의 위치를 찾아 저장한다.
@@ -146,7 +150,6 @@ router.post('/parse/reservation', upload.single('file'), (req, res) => {
         for(let r = Excel_sheet_range.s.r;r<=Excel_sheet_range.e.r;r++) {
             for(let c = Excel_sheet_range.s.c;c<=Excel_sheet_range.e.c;c++) {
                 let cell_address = XLSX.utils.encode_cell({c: c,r: r});
-                // console.log(Excel_sheet[cell_address]);
                 if(Excel_sheet[cell_address] && Excel_sheet[cell_address].v === key){
                     field_row = r;
                 }
@@ -159,19 +162,32 @@ router.post('/parse/reservation', upload.single('file'), (req, res) => {
 
         //필드 row에서 필드명에 따른 column의 위치를 저장
         for(let c = Excel_sheet_range.s.c;c<=Excel_sheet_range.e.c;c++) {
+
             let cell_address = XLSX.utils.encode_cell({c: c, r: field_row});
+
             for(let i in excel.parsing_rule) {
-                if(excel.parsing_rule[i] && excel.parsing_rule[i].field === Excel_sheet[cell_address].v) {
-                    excel.parsing_rule[i].c = c;
+                if(excel.parsing_rule.hasOwnProperty(i))
+                {
+
+                    if (excel.parsing_rule[i] && excel.parsing_rule[i].field === Excel_sheet[cell_address].v) {
+
+                        excel.parsing_rule[i].c = c;
+                    }else {
+
+                    }
                 }
             }
         }
 
         //파싱 데이터에 필드명이 있는데 칼럼을 못찾았을 경우 에러 리턴
         for(let i in excel.parsing_rule) {
-            if(excel.parsing_rule[i] && excel.parsing_rule[i].field) {
-                if(!excel.parsing_rule[i].c || excel.parsing_rule[i].c ==='') {
-                    return res.status(400).json({message: 'Excel Upload Error - '+'cannot parse ' + i});
+            if(excel.parsing_rule.hasOwnProperty(i))
+            {
+                if(excel.parsing_rule[i] && excel.parsing_rule[i].field) {
+
+                    if(excel.parsing_rule[i].c!==0 && !excel.parsing_rule[i].c || excel.parsing_rule[i].c ==='') {
+                        return res.status(400).json({message: 'Excel Upload Error - '+'cannot parse ' + i});
+                    }
                 }
             }
         }
@@ -185,7 +201,7 @@ router.post('/parse/reservation', upload.single('file'), (req, res) => {
         try {
             //파싱 진행
             for (let i in excel.parsing_rule) {
-                if (excel.parsing_rule[i] && excel.parsing_rule[i].field && excel.parsing_rule[i].c) {
+                if (excel.parsing_rule[i] && excel.parsing_rule[i].field && (excel.parsing_rule[i].c||excel.parsing_rule[i].c===0)) {
 
                     for (let row = field_row + 1; row <= Excel_sheet_range.e.r; row++) {
                         //셀의 내용 접근
@@ -207,6 +223,7 @@ router.post('/parse/reservation', upload.single('file'), (req, res) => {
                 }
             }
         }catch(e) {
+            console.log(e);
             return res.status(400).json({message: 'Excel Upload Error - '+'파싱 코드에 문제가 있습니다.'});
         }
 
@@ -223,9 +240,10 @@ router.post('/parse/reservation', upload.single('file'), (req, res) => {
                 o['show_time_hour'] &&
                 o['seat_class'] &&
                 o['ticket_code'] &&
-                o['ticket_price']))
-                return res.status(400).json({message:'Excel Upload Error - '+'필수적인 파싱 내용 빠짐'});
-
+                o['ticket_price'])) {
+                console.log(o);
+                return res.status(400).json({message: 'Excel Upload Error - ' + '필수적인 파싱 내용 빠짐'});
+            }
             //공연 연도 미입력 시 현재 연도 입력.
             //단, 현재 월보다 공연 월이 적은 값일 경우 내년이라고 인식하고 현재 연도+1을 입력
             if(!o['show_date_year']) {
@@ -257,6 +275,10 @@ router.post('/parse/reservation', upload.single('file'), (req, res) => {
             if(!(o['ticket_quantity'])) {
                 o['ticket_quantity'] = 1;
             }
+            // 할인 초기화
+            if(!(o['discount'])) {
+                o['discount'] = undefined;
+            }
             parsed_rows_array.push(o);
         }
 
@@ -277,7 +299,8 @@ router.post('/parse/reservation', upload.single('file'), (req, res) => {
          ticket_code,         //예약 번호, 주문 번호, 티켓 번호 등 각 사이트별 코드
          ticket_price,        //티켓 가격
          theater,             //공연장 참조
-         show,                 //공연 참조
+         show,                //공연 참조
+         discount             //할인 내역
          */
         let outputs = [];
         for(let i=0;i<parsed_rows_array.length;i++) {
@@ -309,7 +332,7 @@ router.post('/parse/reservation', upload.single('file'), (req, res) => {
             output.ticket_price = row.ticket_price;
             output.theater = req.body.theater;
             output.show = req.body.show;
-            output.printed = false;
+            output.discount = row.discount;
             outputs.push(output);
         }
 
@@ -319,6 +342,143 @@ router.post('/parse/reservation', upload.single('file'), (req, res) => {
         });
     });
 });
+router.post('/parse/naverReservation', upload.single('file'), (req, res) => {
+
+    //엑셀 파일 버퍼 읽기
+    const Excel_file_buffer = req.file.buffer;
+    const Excel_file = XLSX.read(Excel_file_buffer);
+
+    //엑셀 시트 읽기
+    const Excel_sheet = Excel_file.Sheets[Excel_file.SheetNames[0]];
+    const Excel_sheet_range = XLSX.utils.decode_range(Excel_sheet['!ref'].toString());
+
+    const wb = XLSX.utils.book_new();
+    const ws_name = "naver";
+//
+    const ws_data = [
+        [],
+    ];
+
+
+    let field_row = -1;
+    for(let r = Excel_sheet_range.s.r;r<=Excel_sheet_range.e.r;r++) {
+        for(let c = Excel_sheet_range.s.c;c<=Excel_sheet_range.e.c;c++) {
+            let cell_address = XLSX.utils.encode_cell({c: c,r: r});
+            if(Excel_sheet[cell_address] && Excel_sheet[cell_address].v === '예약번호'){
+                field_row = r;
+            }
+        }
+    }
+//         //필드가 있는 row를 못찾으면 에러 리턴
+    if(field_row === -1){
+        // return res.status(400).json({message:'Excel Upload Error - '+'cannot find customer_name in excel file'});
+    }
+
+//필드 row에서 필드명에 따른 column의 위치를 저장
+    const columns = [];
+    for(let c = Excel_sheet_range.s.c;c<=Excel_sheet_range.e.c;c++) {
+        let cell_address = XLSX.utils.encode_cell({c: c, r: field_row});
+
+        let cell_data = Excel_sheet[cell_address].v;
+        columns.push(cell_data);
+        ws_data[0].push(cell_data) ;
+    }
+    ws_data[0].push('좌석등급') ;
+    ws_data[0].push('티켓가격') ;
+
+
+    const prohibitedIndex = {
+        ticket_quantity :columns.findIndex((s)=>{return s==='수량'}),
+        ticket_quantity_VIP :columns.findIndex((s)=>{return s==='가격분류1-VIP석_네이버예약60%할인'}),
+        ticket_quantity_R :columns.findIndex((s)=>{return s==='가격분류2-R석_네이버예약시60%할인'}),
+        ticket_price :columns.findIndex((s)=>{return s==='실결제금액'})
+    };
+
+    for (let row = field_row + 1; row <= Excel_sheet_range.e.r; row++) {
+        const ticket_quantity = parseInt(Excel_sheet[XLSX.utils.encode_cell({c: prohibitedIndex.ticket_quantity, r: row})].v);
+        const ticket_quantity_VIP = parseInt(Excel_sheet[XLSX.utils.encode_cell({c: prohibitedIndex.ticket_quantity_VIP, r: row})].v);
+        const ticket_quantity_R = parseInt(Excel_sheet[XLSX.utils.encode_cell({c: prohibitedIndex.ticket_quantity_R, r: row})].v);
+
+        let ticket_price_temp = Excel_sheet[XLSX.utils.encode_cell({c: prohibitedIndex.ticket_price, r: row})].v;
+        let split = ticket_price_temp.split(',');
+        let r = '';
+        for(let i=0;i<split.length;i++){
+            r = r.concat(split[i])
+        }
+        const ticket_price = parseInt(r);
+
+        const ticket_code_index = columns.findIndex((s) => {return s==='예약번호';});
+
+        for(let i=0;i<ticket_quantity_VIP;i++) {
+            const row_data = [];
+            for (let c = Excel_sheet_range.s.c; c <= Excel_sheet_range.e.c; c++) {
+                if( c === prohibitedIndex.ticket_quantity     ||
+                    c === prohibitedIndex.ticket_quantity_VIP ||
+                    c === prohibitedIndex.ticket_quantity_R   ||
+                    c === prohibitedIndex.ticket_price){
+
+                    row_data.push('');
+                    continue;
+                }
+
+
+
+                let cell_address = XLSX.utils.encode_cell({c: c, r: row});
+
+                let cell_data = Excel_sheet[cell_address].v;
+
+                if(c===ticket_code_index)
+                    cell_data += '-'+(i+1);
+
+                row_data.push(String(cell_data))
+            }
+            row_data.push('VIP');
+            row_data.push(parseInt(ticket_price)/parseInt(ticket_quantity));
+            ws_data.push(row_data);
+        }
+        for(let i=0;i<ticket_quantity_R;i++) {
+            const row_data = [];
+            for (let c = Excel_sheet_range.s.c; c <= Excel_sheet_range.e.c; c++) {
+                if( c === prohibitedIndex.ticket_quantity     ||
+                    c === prohibitedIndex.ticket_quantity_VIP ||
+                    c === prohibitedIndex.ticket_quantity_R   ||
+                    c === prohibitedIndex.ticket_price){
+
+                    row_data.push('');
+                    continue;
+
+                }
+
+                let cell_address = XLSX.utils.encode_cell({c: c, r: row});
+
+                let cell_data = Excel_sheet[cell_address].v;
+
+                if(c===ticket_code_index)
+                    cell_data += '-'+(i+1+ticket_quantity_VIP);
+
+                row_data.push(String(cell_data))
+            }
+            row_data.push('R');
+            row_data.push(Math.round(parseInt(ticket_price)/parseInt(ticket_quantity)));
+            ws_data.push(row_data);
+        }
+    }
+
+    const ws = XLSX.utils.aoa_to_sheet(ws_data);
+
+    wb.SheetNames.push(ws_name);
+
+    wb.Sheets[ws_name] = ws;
+
+
+    tmp.file(function _tempFileCreated(err, path, fd, cleanupCallback) {
+        if (err) throw err;
+        XLSX.writeFile(wb, path);
+        return res.download(path, 'naver.xlsx');
+    });
+
+});
+
 router.post('/ticketExcel', (req, res) => {
     const wb = XLSX.utils.book_new();
     const ws_name = "tickets";
@@ -380,7 +540,7 @@ router.get('/showtime/:showtime/date/:date', (req, res) => {
             for (let seat of theater_seats) {
                 Arr.push({
                     num                      :++i,
-                    show_date                :input.date.toLocaleString(),
+                    show_date                :input.date,
                     ticket_quantity          :1, // 좌석 당 예약은 하나
                     seat_class               :seat.seat_class,
                     ticket_price             :seat.seat_class==='VIP' ? 50000 : (seat.seat_class==='R' ? 40000 : undefined),
@@ -388,7 +548,8 @@ router.get('/showtime/:showtime/date/:date', (req, res) => {
                     source                   :undefined,
                     group_name               :undefined,
                     customer_name            :undefined,
-                    customer_phone           :undefined
+                    customer_phone           :undefined,
+                    discount                 :undefined
                 });
             }
 
@@ -460,6 +621,7 @@ router.get('/showtime/:showtime/date/:date', (req, res) => {
                                     obj.group_name = reservation.group_name;
                                     obj.source = reservation.source;
                                     obj.ticket_price = reservation.ticket_price;
+                                    obj.discount = reservation.discount
                                 }
                                 else {
                                     console.log(reservation.seat_position);
@@ -470,7 +632,7 @@ router.get('/showtime/:showtime/date/:date', (req, res) => {
                         const wb = XLSX.utils.book_new();
                         const ws_name = "reservations";
                         const ws_data = [
-                            [ "일련번호", "공연일시", "발권인원", "좌석등급", "판매가", "좌석번호", "구매처", "단체명", "구매자성명", "전화번호"],
+                            [ "일련번호", "공연일시", "발권인원", "좌석등급", "판매가", "좌석번호", "구매처", "단체명", "구매자성명", "전화번호", "할인내역"],
                         ];
 
                         for(let r of Arr) {
@@ -489,7 +651,8 @@ router.get('/showtime/:showtime/date/:date', (req, res) => {
                                 r.source,
                                 r.group_name,
                                 r.customer_name,
-                                String(r.customer_phone)
+                                String(r.customer_phone),
+                                r.discount
                             ]);
                         }
 

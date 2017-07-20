@@ -62,7 +62,6 @@ class API_test_Excel_Reservation extends React.Component {
             })
     }
     uploadFile(file, url) {
-
         //make formdata
         let data = new FormData();
         data.append('file', file);
@@ -169,7 +168,7 @@ class API_test_Excel_Reservation extends React.Component {
                 ticket_price: p.ticket_price,
                 theater: this.state.theater_picked._id,
                 show: this.state.show_picked._id,
-                printed: p.printed
+                discount:p.discount
             };
             data.push(reservation);
         }
@@ -252,6 +251,7 @@ class API_test_Excel_Reservation extends React.Component {
                         return <a href='#' key={t._id} onClick={()=>{this.setState({excel_picked:t})}}>{t.source}</a>;
                     })}
                 </div>
+
                 <div>
                     <p>{this.state.theater_picked ? this.state.theater_picked.name+' '+this.state.theater_picked._id : null}</p>
                     <p>{this.state.show_picked ? this.state.show_picked.name+' '+this.state.show_picked._id : null}</p>
@@ -262,7 +262,6 @@ class API_test_Excel_Reservation extends React.Component {
                         엑셀 예약 파싱 테스트
                         <input type='file' onChange={this.handleChange}/>
                     </label>
-                    <input type='submit' value='업로드'/>
                 </form>
                 <button className='btn btn-info' onClick={this.deleteSource}>소스 삭제</button>
                 <button className='btn btn-info' onClick={this.deleteAll}>전체 삭제</button>
