@@ -1,3 +1,5 @@
 node_modules/
 .idea/
 build/
+test/
+app.yaml
