@@ -47,7 +47,7 @@ class PriceChangeModal extends React.Component {
             return null;
         return (
             <div className="modal" 
-                 id='SmallModal'  
+                 id='PriceChangeModal'
                  data-keyboard="false" //esc 금지
                  data-backdrop="static"//바깥 클릭 기본 프로시져 금지
                  tabIndex="-1">

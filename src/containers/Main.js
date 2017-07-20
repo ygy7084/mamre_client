@@ -12,13 +12,15 @@ import {
     GroupTickettingModal,
     CustomerFindingModal,
     LoaderModal,
-    ErrorModal
+    ErrorModal,
+    ExtraFunctionModal,
 } from '../components';
 
 class Main extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
+            loaded : false,
             theater : null,
             show : null,
             showtime : null,
@@ -36,6 +38,11 @@ class Main extends React.Component {
             LoaderModal_title : '',
             ErrorModal_on : false,
             ErrorModal_title : '',
+            ExtraFunctionModal_on : false,
+
+            autoPrint : true,
+            autoCombine : true,
+            reTickettingStart : false
         };
         this.datePick = this.datePick.bind(this);
         this.timePick = this.timePick.bind(this);
@@ -55,6 +62,15 @@ class Main extends React.Component {
         this.ticketExcel = this.ticketExcel.bind(this);
         this.getAllExcel = this.getAllExcel.bind(this);
         this.groupTicketting = this.groupTicketting.bind(this);
+        this.tickettingWithoutCustomer = this.tickettingWithoutCustomer.bind(this);
+        this.tickettingWithCustomer = this.tickettingWithCustomer.bind(this);
+        this.extraFunctionModal = this.extraFunctionModal.bind(this);
+        this.changePrintMode = this.changePrintMode.bind(this);
+        this.changeCombineMode = this.changeCombineMode.bind(this);
+        this.tickettingCenter = this.tickettingCenter.bind(this);
+        this.interparkTicketting = this.interparkTicketting.bind(this);
+        this.reTickettingStart = this.reTickettingStart.bind(this);
+        this.reTicketting = this.reTicketting.bind(this);
     }
     componentDidMount() {
         let theater,show,showtime;
@@ -138,7 +154,9 @@ class Main extends React.Component {
     }
     chooseCustomer(mode, customers) {
         if(mode==='preTicket')
-            this.preTickettingWithoutSeats(customers);
+            return false;
+            //좌석 설정해주는 창이 뜨도록!
+            //this.preTickettingWithoutSeats(customers);
         else
             this.setState({
                 customers_picked: customers,
@@ -157,9 +175,12 @@ class Main extends React.Component {
                 customers: [],
                 customers_picked: [],
             });
+        if(this.state.reTickettingStart)
+            this.reTickettingStart(false);
     }
 
-    groupTicketting(group_name, price) {
+    //완성
+    groupTicketting(group_name, price, combine) {
         const data = [];
         const source = '단체';
 
@@ -178,7 +199,9 @@ class Main extends React.Component {
                 ticket_quantity: 1,
                 ticket_price: price ? parseInt(price) : parseInt(p.price),
                 theater: this.state.theater._id,
-                show: this.state.show._id
+                show: this.state.show._id,
+                printed:true,
+                delivered:true
             };
             data.push(reservation);
         }
@@ -200,27 +223,65 @@ class Main extends React.Component {
                 else
                     return res.json().then(err => { throw err; })})
             .then(res => {
+                /*
+                이따가 이 부분 다른 티켓 발권처리에도 다 넣고 상태(출력을 어떻게할 시 결정할 수 있도록!)
+                 */
                 let wrapper = {
                     data : data,
-                    combine :false
+                    combine : combine
                 };
-                // fetch('http://localhost:8081/ticket', {
-                //     method:'POST',
-                //     headers:{'Content-Type':'application/json'},
-                //     body:JSON.stringify(wrapper)
-                // })
-                //     .then((res) => res.json())
-                //     .then((res)=>{
-                //         this.loadSeats(this.state.time_picked);
-                // });
-                //
-                this.loadSeats(this.state.time_picked);
+
+                if(this.state.autoPrint)
+                    fetch('http://localhost:8081/ticket', {
+                        method:'POST',
+                        headers:{'Content-Type':'application/json'},
+                        body:JSON.stringify(wrapper)
+                    })
+                        .then((res) => res.json())
+                        .then((res)=>{
+                            this.loadSeats(this.state.time_picked);
+                        })
+                        .catch((err) => {
+                            let message = err;
+                            if(err.message && err.message!=='')
+                                message = err.message;
+                            console.log(err);
+
+                            fetch('/api/ticket/print', {
+                                method:'POST',
+                                headers:{'Content-Type':'application/json'},
+                                body:JSON.stringify(wrapper)
+                            })
+                                .then(res=> res.blob())
+                                .then((blob) => {
+                                    FileDownload(blob, 'ticket.pdf');
+                                    this.setState({
+                                        LoaderModal_on:false,
+                                        ErrorModal_on:true,
+                                        ErrorModal_title:'프린터 출력이 불가능합니다. PDF 모드로 변경해주세요.'
+                                    });
+                                });
+                            //알수없는에러에 대한 처리도 필요할 듯?
+                        });
+                else
+                    fetch('/api/ticket/print', {
+                        method:'POST',
+                        headers:{'Content-Type':'application/json'},
+                        body:JSON.stringify(wrapper)
+                    })
+                        .then(res=> res.blob())
+                        .then((blob) => {
+                            FileDownload(blob, 'ticket.pdf');
+                            this.loadSeats(this.state.time_picked);
+                        });
+
             })
             .catch((err) => {
                 let message = err;
                 if(err.message && err.message!=='')
                     message = err.message;
                 console.log(err);
+
                 this.setState({
                     LoaderModal_on:false,
                     ErrorModal_on:true,
@@ -228,24 +289,18 @@ class Main extends React.Component {
                 });
             });
     }
-    // preTicketting2() {
-    //
-    // }
-    // pretickettingWithoutCustomer(){
-    //
-    // }
-    // tickettingWithoutCustomer() {
-    //
-    // }
-    preTicketting(source, group_name, price) {
+    reTicketting(combine) {
+        if(this.state.reTickettingStart)
+            this.setState({reTickettingStart:false});
+
         let data = [];
-            for(let p of this.state.seats_picked) {
+
+        for(let p of this.state.seats_picked) {
+            let price = p.price;
+            if(!price) {
+                price = p.seat_class==='VIP' ? '50000' : '40000';
+            }
             let reservation = {
-                input_date: new Date(),
-                source : source,
-                group_name: group_name ? group_name : undefined,
-                customer_name:  null,
-                customer_phone: null,
                 show_date: this.state.time_picked,
                 seat_class: p.seat_class,
                 seat_position: {
@@ -254,20 +309,95 @@ class Main extends React.Component {
                     num : p.num
                 },
                 ticket_quantity: 1,
-                ticket_price: price ? parseInt(price) : parseInt(p.price),
-                theater: this.state.theater._id,
-                show: this.state.show._id
+                ticket_price: parseInt(price),
             };
             data.push(reservation);
         }
         this.setState({
             LoaderModal_on:true,
-            LoaderModal_title:'발권 중'
+            LoaderModal_title:'재발권 중'
+        });
+        let wrapper = {
+            data : data,
+            combine :combine
+        };
+        if(this.state.autoPrint)
+            fetch('http://localhost:8081/ticket', {
+                method:'POST',
+                headers:{'Content-Type':'application/json'},
+                body:JSON.stringify(wrapper)
+            })
+                .then((res) => res.json())
+                .then((res)=>{
+                    this.loadSeats(this.state.time_picked);
+                })
+                .catch((err) => {
+                    let message = err;
+                    if(err.message && err.message!=='')
+                        message = err.message;
+                    console.log(err);
+
+                    fetch('/api/ticket/print', {
+                        method:'POST',
+                        headers:{'Content-Type':'application/json'},
+                        body:JSON.stringify(wrapper)
+                    })
+                        .then(res=> res.blob())
+                        .then((blob) => {
+                            FileDownload(blob, 'ticket.pdf');
+                            this.setState({
+                                LoaderModal_on:false,
+                                ErrorModal_on:true,
+                                ErrorModal_title:'프린터 출력이 불가능합니다. PDF 모드로 변경해주세요.'
+                            });
+                        });
+                    //알수없는에러에 대한 처리도 필요할 듯?
+                });
+        else
+            fetch('/api/ticket/print', {
+                method:'POST',
+                headers:{'Content-Type':'application/json'},
+                body:JSON.stringify(wrapper)
+            })
+                .then(res=> res.blob())
+                .then((blob) => {
+                    FileDownload(blob, 'ticket.pdf');
+                    this.loadSeats(this.state.time_picked);
+                });
+    }
+    tickettingWithoutCustomer(combine) {
+
+        let data = [];
+        let source = '현장';
+
+        for(let p of this.state.seats_picked) {
+            let reservation = {
+                input_date: new Date(),
+                source : source,
+                show_date: this.state.time_picked,
+                seat_class: p.seat_class,
+                seat_position: {
+                    floor : p.floor,
+                    col : p.col,
+                    num : p.num
+                },
+                ticket_quantity: 1,
+                ticket_price: parseInt(p.price),
+                theater: this.state.theater._id,
+                show: this.state.show._id,
+                printed:true,
+                delivered:true
+            };
+            data.push(reservation);
+        }
+        this.setState({
+            LoaderModal_on:true,
+            LoaderModal_title:'고객 미지정 발권 중'
         });
         let wrapper = {
             data : data
         };
-        return fetch('/api/reservation/createMany',{
+        return fetch('/api/reservation/tickettingWithoutCustomer',{
             method : 'POST',
             headers : {'Content-Type' : 'application/json'},
             body : JSON.stringify(wrapper)
@@ -281,29 +411,381 @@ class Main extends React.Component {
                 //
                 let wrapper = {
                     data : data,
-                    combine :false
+                    combine :combine
                 };
-                // fetch('http://localhost:8081/ticket', {
-                //     method:'POST',
-                //     headers:{'Content-Type':'application/json'},
-                //     body:JSON.stringify(wrapper)
-                // })
-                //     .then((res) => res.json())
-                //     .then((res)=>{
-                //         this.loadSeats(this.state.time_picked);
-                // });
-                //
-                this.loadSeats(this.state.time_picked);
+                if(this.state.autoPrint)
+                    fetch('http://localhost:8081/ticket', {
+                        method:'POST',
+                        headers:{'Content-Type':'application/json'},
+                        body:JSON.stringify(wrapper)
+                    })
+                        .then((res) => res.json())
+                        .then((res)=>{
+                            this.loadSeats(this.state.time_picked);
+                        })
+                        .catch((err) => {
+                            let message = err;
+                            if(err.message && err.message!=='')
+                                message = err.message;
+                            console.log(err);
+
+                            fetch('/api/ticket/print', {
+                                method:'POST',
+                                headers:{'Content-Type':'application/json'},
+                                body:JSON.stringify(wrapper)
+                            })
+                                .then(res=> res.blob())
+                                .then((blob) => {
+                                    FileDownload(blob, 'ticket.pdf');
+                                    this.setState({
+                                        LoaderModal_on:false,
+                                        ErrorModal_on:true,
+                                        ErrorModal_title:'프린터 출력이 불가능합니다. PDF 모드로 변경해주세요.'
+                                    });
+                                });
+                            //알수없는에러에 대한 처리도 필요할 듯?
+                        });
+                else
+                    fetch('/api/ticket/print', {
+                        method:'POST',
+                        headers:{'Content-Type':'application/json'},
+                        body:JSON.stringify(wrapper)
+                    })
+                        .then(res=> res.blob())
+                        .then((blob) => {
+                            FileDownload(blob, 'ticket.pdf');
+                            this.loadSeats(this.state.time_picked);
+                        });
+
             })
             .catch((err) => {
                 let message = err;
                 if(err.message && err.message!=='')
                     message = err.message;
+                console.log(err);
 
-                console.log(message);
-
+                this.setState({
+                    LoaderModal_on:false,
+                    ErrorModal_on:true,
+                    ErrorModal_title:message
+                });
             });
     }
+    tickettingWithCustomer(combine) {
+
+        let seats_picked = JSON.parse(JSON.stringify(this.state.seats_picked));
+        let customers_picked = JSON.parse(JSON.stringify(this.state.customers_picked));
+        let data = [];
+        for (let seat of seats_picked) {
+            for(let customer of customers_picked) {
+                if(!customer.seat_position && seat.seat_class===customer.seat_class) {
+                    customer.seat_position = {
+                        floor:seat.floor,
+                        col:seat.col,
+                        num:seat.num
+                    };
+                    break;
+                }
+            }
+        }
+
+        for(let customer of customers_picked) {
+            let reservation = {
+                _id:customer._id,
+                input_date: new Date(),
+                seat_position: customer.seat_position,
+                show_date: this.state.time_picked,
+                seat_class: customer.seat_class,
+                ticket_price: customer.ticket_price,
+                printed:true,
+                delivered:true
+            };
+            data.push(reservation);
+        }
+
+        /*
+         input_date: new Date(),
+         source : source,
+         group_name: group_name,
+         show_date: this.state.time_picked,
+         seat_class: p.seat_class,
+         seat_position: {
+         floor : p.floor,
+         col : p.col,
+         num : p.num
+         },
+         ticket_quantity: 1,
+         ticket_price: price ? parseInt(price) : parseInt(p.price),
+         theater: this.state.theater._id,
+         show: this.state.show._id,
+         printed:true,
+         delivered:true
+
+
+         */
+
+        this.setState({
+            LoaderModal_on: true,
+            LoaderModal_title: '고객 지정 발권 중'
+        });
+        let wrapper = {
+            data : data
+        };
+        return fetch('/api/reservation/tickettingWithCustomer', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(wrapper)
+        })
+            .then(res => {
+                if (res.ok)
+                    return res.json();
+                else
+                    return res.json().then(err => {
+                        throw err;
+                    })
+            })
+            .then(res => {
+                let wrapper = {
+                    data : data,
+                    combine :combine
+                };
+                if(this.state.autoPrint)
+                    fetch('http://localhost:8081/ticket', {
+                        method:'POST',
+                        headers:{'Content-Type':'application/json'},
+                        body:JSON.stringify(wrapper)
+                    })
+                        .then((res) => res.json())
+                        .then((res)=>{
+                            this.loadSeats(this.state.time_picked);
+                        })
+                        .catch((err) => {
+                            let message = err;
+                            if(err.message && err.message!=='')
+                                message = err.message;
+                            console.log(err);
+
+                            fetch('/api/ticket/print', {
+                                method:'POST',
+                                headers:{'Content-Type':'application/json'},
+                                body:JSON.stringify(wrapper)
+                            })
+                                .then(res=> res.blob())
+                                .then((blob) => {
+                                    FileDownload(blob, 'ticket.pdf');
+                                    this.setState({
+                                        LoaderModal_on:false,
+                                        ErrorModal_on:true,
+                                        ErrorModal_title:'프린터 출력이 불가능합니다. PDF 모드로 변경해주세요.'
+                                    });
+                                });
+                            //알수없는에러에 대한 처리도 필요할 듯?
+                        });
+                else
+                    fetch('/api/ticket/print', {
+                        method:'POST',
+                        headers:{'Content-Type':'application/json'},
+                        body:JSON.stringify(wrapper)
+                    })
+                        .then(res=> res.blob())
+                        .then((blob) => {
+                            FileDownload(blob, 'ticket.pdf');
+                            this.loadSeats(this.state.time_picked);
+                        });
+
+            })
+            .catch((err) => {
+                let message = err;
+                if(err.message && err.message!=='')
+                    message = err.message;
+                console.log(err);
+
+                this.setState({
+                    LoaderModal_on:false,
+                    ErrorModal_on:true,
+                    ErrorModal_title:message
+                });
+            });
+
+    }
+    preTicketting(combine) {
+        if(this.state.reTickettingStart) {
+            return false;
+        }
+        /*
+        차후에 두개의 예약을 묶어야 한다.
+        고객 데이터 없는 이 Reservation과
+        고객 데이터만 있는 Reservation을 합쳐야 하는 과정이 필요하다.
+         */
+        let data = [];
+
+        for(let p of this.state.seats_picked) {
+            let reservation = {
+                input_date: new Date(),
+                show_date: this.state.time_picked,
+                seat_class: p.seat_class,
+                seat_position: {
+                    floor : p.floor,
+                    col : p.col,
+                    num : p.num
+                },
+                ticket_quantity: 1,
+                ticket_price: parseInt(p.price),
+                theater: this.state.theater._id,
+                show: this.state.show._id,
+                printed:true,
+                delivered:false
+            };
+            data.push(reservation);
+        }
+        this.setState({
+            LoaderModal_on:true,
+            LoaderModal_title:'사전 발권 중'
+        });
+        let wrapper = {
+            data : data
+        };
+        return fetch('/api/reservation/preTicketting',{
+            method : 'POST',
+            headers : {'Content-Type' : 'application/json'},
+            body : JSON.stringify(wrapper)
+        })
+            .then(res =>{
+                if(res.ok)
+                    return res.json();
+                else
+                    return res.json().then(err => { throw err; })})
+            .then(res => {
+                //
+                let wrapper = {
+                    data : data,
+                    combine :combine
+                };
+                if(this.state.autoPrint)
+                    fetch('http://localhost:8081/ticket', {
+                        method:'POST',
+                        headers:{'Content-Type':'application/json'},
+                        body:JSON.stringify(wrapper)
+                    })
+                        .then((res) => res.json())
+                        .then((res)=>{
+                            this.loadSeats(this.state.time_picked);
+                        })
+                        .catch((err) => {
+                            let message = err;
+                            if(err.message && err.message!=='')
+                                message = err.message;
+                            console.log(err);
+
+                            fetch('/api/ticket/print', {
+                                method:'POST',
+                                headers:{'Content-Type':'application/json'},
+                                body:JSON.stringify(wrapper)
+                            })
+                                .then(res=> res.blob())
+                                .then((blob) => {
+                                    FileDownload(blob, 'ticket.pdf');
+                                    this.setState({
+                                        LoaderModal_on:false,
+                                        ErrorModal_on:true,
+                                        ErrorModal_title:'프린터 출력이 불가능합니다. PDF 모드로 변경해주세요.'
+                                    });
+                                });
+                            //알수없는에러에 대한 처리도 필요할 듯?
+                        });
+                else
+                    fetch('/api/ticket/print', {
+                        method:'POST',
+                        headers:{'Content-Type':'application/json'},
+                        body:JSON.stringify(wrapper)
+                    })
+                        .then(res=> res.blob())
+                        .then((blob) => {
+                            FileDownload(blob, 'ticket.pdf');
+                            this.loadSeats(this.state.time_picked);
+                        });
+            })
+            .catch((err) => {
+                let message = err;
+                if(err.message && err.message!=='')
+                    message = err.message;
+                console.log(err);
+
+                this.setState({
+                    LoaderModal_on:false,
+                    ErrorModal_on:true,
+                    ErrorModal_title:message
+                });
+            });
+    }
+
+    // preTicketting(source, group_name, price) {
+    //     let data = [];
+    //         for(let p of this.state.seats_picked) {
+    //         let reservation = {
+    //             input_date: new Date(),
+    //             source : source,
+    //             group_name: group_name ? group_name : undefined,
+    //             customer_name:  null,
+    //             customer_phone: null,
+    //             show_date: this.state.time_picked,
+    //             seat_class: p.seat_class,
+    //             seat_position: {
+    //                 floor : p.floor,
+    //                 col : p.col,
+    //                 num : p.num
+    //             },
+    //             ticket_quantity: 1,
+    //             ticket_price: price ? parseInt(price) : parseInt(p.price),
+    //             theater: this.state.theater._id,
+    //             show: this.state.show._id
+    //         };
+    //         data.push(reservation);
+    //     }
+    //     this.setState({
+    //         LoaderModal_on:true,
+    //         LoaderModal_title:'발권 중'
+    //     });
+    //     let wrapper = {
+    //         data : data
+    //     };
+    //     return fetch('/api/reservation/createMany',{
+    //         method : 'POST',
+    //         headers : {'Content-Type' : 'application/json'},
+    //         body : JSON.stringify(wrapper)
+    //     })
+    //         .then(res =>{
+    //             if(res.ok)
+    //                 return res.json();
+    //             else
+    //                 return res.json().then(err => { throw err; })})
+    //         .then(res => {
+    //             //
+    //             let wrapper = {
+    //                 data : data,
+    //                 combine :false
+    //             };
+    //             // fetch('http://localhost:8081/ticket', {
+    //             //     method:'POST',
+    //             //     headers:{'Content-Type':'application/json'},
+    //             //     body:JSON.stringify(wrapper)
+    //             // })
+    //             //     .then((res) => res.json())
+    //             //     .then((res)=>{
+    //             //         this.loadSeats(this.state.time_picked);
+    //             // });
+    //             //
+    //             this.loadSeats(this.state.time_picked);
+    //         })
+    //         .catch((err) => {
+    //             let message = err;
+    //             if(err.message && err.message!=='')
+    //                 message = err.message;
+    //
+    //             console.log(message);
+    //
+    //         });
+    // }
     preTickettingWithoutSeats(customers_picked) {
         if(!customers_picked)
             return null;
@@ -367,7 +849,6 @@ class Main extends React.Component {
             }
         }
 
-
         for(let customer of customers_picked) {
             let reservation = {
                 _id:customer._id,
@@ -412,7 +893,10 @@ class Main extends React.Component {
                 console.log(message);
             });
     }
-    findCustomers(phoneNumber) {
+    findCustomers(input) {
+        if(!this.state.time_picked)
+            return false;
+
         this.setState({
             seats_picked: [],
             price_picked: null,
@@ -421,6 +905,7 @@ class Main extends React.Component {
             LoaderModal_on:true,
             LoaderModal_title:'검색 중'
         });
+
         fetch('/api/reservation/read/theater/'+this.state.theater._id+'/show/'+this.state.show._id+'/date/'+this.state.time_picked,{
             method : 'GET'
         })
@@ -430,13 +915,18 @@ class Main extends React.Component {
                 else
                     return res.json().then(err => { throw err; })})
             .then(res => {
-                let customers = [];
-                console.log("BUYERS");
-                console.log(res.data);
-                for(let r of res.data) {
-                    if (phoneNumber === r.customer_phone && !r.printed)
-                        customers.push(r);
-                }
+                const customers = [];
+
+                if(Number(input))
+                    for(let r of res.data) {
+                        if (input === r.customer_phone && !r.printed)
+                            customers.push(r);
+                    }
+                else
+                    for(let r of res.data) {
+                        if (input === r.customer_name && !r.printed)
+                            customers.push(r);
+                    }
                 this.setState({
                     customers:customers,
                     LoaderModal_on:false,
@@ -449,13 +939,13 @@ class Main extends React.Component {
                 console.log(message);
             });
 
-
     }
     changePriceOn(seat) {
-        this.setState({
-            price_picked:seat,
-            PriceChangeModal_on:true
-        });
+        if(!this.state.customers_picked || !this.state.customers_picked.length)
+            this.setState({
+                price_picked:seat,
+                PriceChangeModal_on:true
+            });
     }
     changePrice(price) {
         let seats_picked = this.state.seats_picked;
@@ -487,6 +977,9 @@ class Main extends React.Component {
         });
     }
     groupTickettingModal(on){
+        if(this.state.reTickettingStart)
+            return false;
+
         if(this.state.seats_picked && this.state.seats_picked.length && on)
             this.setState({
                 GroupTickettingModal_on : true
@@ -494,6 +987,18 @@ class Main extends React.Component {
         else
             this.setState({
                 GroupTickettingModal_on : false
+            });
+    }
+    extraFunctionModal(on) {
+
+
+        if(this.state.loaded && on)
+            this.setState({
+                ExtraFunctionModal_on : true
+            });
+        else
+            this.setState({
+                ExtraFunctionModal_on : false
             });
     }
     datePick(date) {
@@ -515,6 +1020,7 @@ class Main extends React.Component {
 
         // 공연 시간 로드 및 좌석, 구매자 정보 초기화
         this.setState({
+            loaded:false,
             times : times,
             seats:[],
             seats_picked:[],
@@ -530,6 +1036,10 @@ class Main extends React.Component {
     }
     timePick(time) {
         this.loadSeats(time);
+    }
+    reTickettingStart(boolean) {
+        this.setState({reTickettingStart:boolean});
+        this.loadSeats(this.state.time_picked);
     }
     loadSeats(time) {
 
@@ -558,10 +1068,19 @@ class Main extends React.Component {
                     else
                         throw new Error('좌석 등급을 식별할 수 없습니다. - '+seat.seat_class);
                 }
-                console.log(res);
+
+                let seats;
+                if(this.state.reTickettingStart)
+                    seats = res.data.reserved_seats;
+                else
+                    seats = res.data.not_reserved_seats;
+
+                console.log(res.data);
+
                 this.setState({
+                    loaded:true,
                     time_picked:time,
-                    seats:res.data.not_reserved_seats,
+                    seats:seats,
                     seats_picked:[],
                     price_picked: null,
                     customers: [],
@@ -623,7 +1142,7 @@ class Main extends React.Component {
          좌석이 로드 되어 있지 않거나 사용가능한 좌석이 없을 경우
          */
 
-        if( !this.state.seats ||
+        if( !this.state.seats||
             !this.state.seats.length)
             return {
                 OK: false
@@ -706,12 +1225,79 @@ class Main extends React.Component {
             });
     }
     getAllExcel() {
+        this.setState({
+            LoaderModal_on:true,
+            LoaderModal_title:'엑셀 출력 중'
+        });
         return fetch('/api/excel/showtime/'+this.state.showtime._id+'/date/'+this.state.time_picked,{
             method : 'GET'
         })
             .then(res=> res.blob())
             .then((blob) => {
+                this.setState({
+                    LoaderModal_on:false,
+                });
                 FileDownload(blob, 'reservations.xlsx');
+            })
+            .catch((err) => {
+                this.setState({
+                    LoaderModal_on:false,
+                });
+                let message = err;
+                if(err.message && err.message!=='')
+                    message = err.message;
+                console.log(message);
+            });
+    }
+    changePrintMode(boolean) {
+        this.setState({autoPrint:boolean});
+    }
+    changeCombineMode(boolean) {
+        this.setState({autoCombine:boolean});
+    }
+    tickettingCenter(cb) {
+        let combine = false;
+        if(this.state.autoCombine && this.state.seats_picked.length<=10) {
+            combine = true;
+            const firstSeatClass = this.state.seats_picked[0].seat_class;
+            for(let seat of this.state.seats_picked)
+                if(seat.seat_class !== firstSeatClass)
+                    combine = false;
+        }
+        cb(combine);
+    }
+    interparkTicketting() {
+        if(!this.state.loaded || this.state.reTickettingStart)
+            return false;
+
+        this.setState({
+            LoaderModal_on:true,
+            LoaderModal_title:'인터파크 발권 중'
+        });
+        return fetch('/api/reservation/interpark/showtime/'+this.state.showtime._id+'/date/'+this.state.time_picked,{
+            method : 'GET'
+        })
+            .then(res =>{
+                if(res.ok)
+                    return res.json();
+                else
+                    return res.json().then(err => { throw err; })})
+            .then(res => {
+                let wrapper = {
+                    data : res.data,
+                    combine :false
+                };
+
+                fetch('/api/ticket/print', {
+                        method:'POST',
+                        headers:{'Content-Type':'application/json'},
+                        body:JSON.stringify(wrapper)
+                    })
+                        .then(res=> res.blob())
+                        .then((blob) => {
+                            FileDownload(blob, 'ticket.pdf');
+                            this.loadSeats(this.state.time_picked);
+                        });
             })
             .catch((err) => {
                 let message = err;
@@ -720,6 +1306,7 @@ class Main extends React.Component {
                 console.log(message);
             });
     }
+
     render() {
         return (
             <div>
@@ -743,12 +1330,19 @@ class Main extends React.Component {
                         ticketting={this.ticketting}
                         preTicketting={this.preTicketting}
                         seatsInfo={this.InfoOfSelectedSeats()}
-                        groupTickettingModal={this.groupTickettingModal}
-                        IsSeatsLoaded={this.state.seats}/>
+                        tickettingWithoutCustomer={this.tickettingWithoutCustomer}
+                        tickettingWithCustomer={this.tickettingWithCustomer}
+                        extraFunctionModal={this.extraFunctionModal}
+                        tickettingCenter={this.tickettingCenter}
+                        reTicketting={this.reTicketting}
+                        reTickettingStart={this.state.reTickettingStart}/>
 
                 </Body>
+
+
                 <GroupTickettingModal
                     groupTicketting={this.groupTicketting}
+                    tickettingCenter={this.tickettingCenter}
                     ticketExcel={this.ticketExcel}
                     on={this.state.GroupTickettingModal_on}
                     groupTickettingModal={this.groupTickettingModal}
@@ -757,7 +1351,8 @@ class Main extends React.Component {
                     chooseCustomers={this.chooseCustomer}
                     data={this.state.customers}
                     on={this.state.CustomerFindingModal_on}
-                    onClose={()=>{this.setState({CustomerFindingModal_on:false})}}/>
+                    onClose={()=>{this.setState({CustomerFindingModal_on:false})}}
+                />
                 <PriceChangeModal
                     on={this.state.PriceChangeModal_on}
                     onClose={()=>{this.setState({PriceChangeModal_on:false})}}
@@ -766,25 +1361,33 @@ class Main extends React.Component {
                     changePriceAll={this.changePriceAll}
                     basePrice={this.state.price_picked ?
                         this.state.price_picked.seat_class==='VIP' ? 50000 : 40000
-                        : 0}/>
+                        : 0}
+                />
                 <LoaderModal
                     on={this.state.LoaderModal_on}
-                    title={this.state.LoaderModal_title}/>
+                    title={this.state.LoaderModal_title}
+                />
                 <ErrorModal
                     on={this.state.ErrorModal_on}
                     title={this.state.ErrorModal_title}
-                    onClose={()=>{this.setState({ErrorModal_on:false})}}/>
-
-
-
-
-
-                <button className="btn btn-info" style={{position:'absolute',top:'800px'}} onClick={this.getAllExcel}>엑셀 전부 얻기 테스트</button>
-
-
-
-
-
+                    onClose={()=>{
+                        this.setState({ErrorModal_on:false});
+                        if(this.state.time_picked)
+                            this.loadSeats(this.state.time_picked);
+                    }}
+                />
+                <ExtraFunctionModal
+                    on={this.state.ExtraFunctionModal_on}
+                    extraFunctionModal={this.extraFunctionModal}
+                    getAllExcel={this.getAllExcel}
+                    changePrintMode={this.changePrintMode}
+                    autoPrint={this.state.autoPrint}
+                    changeCombineMode={this.changeCombineMode}
+                    autoCombine={this.state.autoCombine}
+                    groupTickettingModal={this.groupTickettingModal}
+                    interparkTicketting={this.interparkTicketting}
+                    reTickettingStart={this.reTickettingStart}
+                />
 
             </div>
         )

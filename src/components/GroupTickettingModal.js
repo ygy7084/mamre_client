@@ -51,8 +51,10 @@ class GroupTickettingModal extends React.Component {
             this.state.groupNameInput.length&&
             this.state.priceInput&&
             this.state.priceInput.length) {
-            this.props.groupTicketting(this.state.groupNameInput, this.state.priceInput);
-            this.props.groupTickettingModal(false);
+            this.props.tickettingCenter((combine) => {
+                this.props.groupTicketting(this.state.groupNameInput, this.state.priceInput, combine);
+                this.props.groupTickettingModal(false);
+            });
         }
     }
     ticketExcel() {

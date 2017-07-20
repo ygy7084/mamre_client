@@ -10,6 +10,7 @@ class Right extends React.Component {
         this.findCustomers_onInput = this.findCustomers_onInput.bind(this);
         this.findCustomers = this.findCustomers.bind(this);
         this.ticketting = this.ticketting.bind(this);
+        this.preTicketting = this.preTicketting.bind(this);
     }
 
     findCustomers_onInput(e) {
@@ -22,13 +23,28 @@ class Right extends React.Component {
             this.props.findCustomers(this.state.findCustomers_input);
     }
     ticketting(flag) {
-        if(flag) {
-            //좌석만 티켓팅
-            this.props.preTicketting('현장', null, null);
+        if(this.props.reTickettingStart) {
+            this.props.tickettingCenter((combine) => {
+                this.props.reTicketting(combine);
+            });
         }else {
+            if(flag)
+            //좌석만 티켓팅
+                this.props.tickettingCenter((combine) => {
+                    this.props.tickettingWithoutCustomer(combine);
+                });
+            else
             //구매자 선택 후 좌석 티켓팅
-            this.props.ticketting('현장');
+                this.props.tickettingCenter((combine) => {
+                    this.props.tickettingWithCustomer(combine);
+                });
         }
+
+    }
+    preTicketting() {
+        this.props.tickettingCenter((combine) => {
+            this.props.preTicketting(combine);
+        });
     }
     render() {
 
@@ -41,7 +57,11 @@ class Right extends React.Component {
 
             tableFooter = (
                 <div style={style.priceTable.footer}>
-                    <div style={style.priceTable.footerLabel}>합계</div>
+                    {this.props.customers_picked.length ?
+                        <div style={style.priceTable.footerLabel}>합계 (발권 시, 예매처의 예매 가격대로 발권)</div>
+                        :
+                        <div style={style.priceTable.footerLabel}>합계</div>
+                    }
                     <div style={style.priceTable.footerValue}>{sum}</div>
                 </div>
             )
@@ -51,7 +71,7 @@ class Right extends React.Component {
                 <div style={style.rightWrapper}>
                     <div style={style.phoneWrapper}>
                         <div style={style.phoneLabel}>
-                            <strong>전화번호 뒷자리</strong>
+                            <strong>검색 (성명, 전화번호 4자리)</strong>
                         </div>
                         <div className="input-group">
                             <input
@@ -176,17 +196,24 @@ class Right extends React.Component {
                     <button className={classNames({
                                 'btn':true,
                                 'btn-primary':true,
-                                'disabled':!this.props.seatsInfo.OK
+                                'disabled':!this.props.seatsInfo
                             })}
                             style={style.button1}
                             onClick={this.props.resetSeats}>다시선택</button>
+                    <button className={classNames({
+                        'btn':true,
+                        'btn-primary':true,
+                        'disabled':!this.props.seatsInfo
+                    })}
+                            style={style.button1}
+                            onClick={()=>{this.props.extraFunctionModal(true)}}>기타선택</button>
                     <button className={classNames({
                                 'btn':true,
                                 'btn-primary':true,
                                 'disabled':!this.props.seatsInfo.OK||this.props.customers_picked.length
                             })}
                             style={style.button1}
-                            onClick={(e) => {this.props.groupTickettingModal(true)}}>사전발권</button>
+                            onClick={this.preTicketting}>사전발권</button>
                     <button className={classNames({
                                 'btn':true,
                                 'btn-primary':true,
@@ -337,13 +364,13 @@ const style = {
         marginRight:'5px',
         background:'rgb(35,57,119)',
         border:'0',
-        width:'130px',
+        width:'90px',
         height:'45px'
     },
     button2:{
         background:'rgb(146,39,143)',
         border:'0',
-        width:'180px',
+        width:'165px',
         height:'45px'
     }
 };

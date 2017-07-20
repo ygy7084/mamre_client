@@ -4,6 +4,7 @@ import {Excel, Showtime, Reservation} from '../models';
 import XLSX from 'xlsx';
 import moment from 'moment-timezone';
 import tmp from 'tmp';
+import {datetime} from './module';
 
 const router = express.Router();
 
@@ -87,7 +88,6 @@ router.post('/parse/theater', upload.single('file'), (req, res) => {
     }
     res.json({data:seats});
 });
-
 // 엑셀 파일 업로드
 /*
  <프로세스>
@@ -319,7 +319,6 @@ router.post('/parse/reservation', upload.single('file'), (req, res) => {
         });
     });
 });
-
 router.post('/ticketExcel', (req, res) => {
     const wb = XLSX.utils.book_new();
     const ws_name = "tickets";
@@ -327,10 +326,13 @@ router.post('/ticketExcel', (req, res) => {
     const ws_data = [
         [ "단체명", "공연일시", "발권인원", "좌석등급", "판매가", "좌석번호"],
     ];
+
     for(let r of req.body.data) {
+        const date = new datetime(r.show_date);
+
         ws_data.push([
             r.source,
-            new Date(r.show_date).toLocaleString(),
+            date.datetimeString,
             r.ticket_quantity,
             r.seat_class,
             r.ticket_price,
@@ -350,7 +352,6 @@ router.post('/ticketExcel', (req, res) => {
     });
 
 });
-
 router.get('/showtime/:showtime/date/:date', (req, res) => {
     const input = {
         showtime: req.params.showtime,
@@ -476,9 +477,11 @@ router.get('/showtime/:showtime/date/:date', (req, res) => {
                             for(let prop in r)
                                 r[prop] = r[prop] ? r[prop] : '';
 
+                            const date = new datetime(r.show_date);
+
                             ws_data.push([
                                 String(r.num),
-                                new Date(r.show_date).toLocaleDateString()+' '+new Date(r.show_date).toLocaleTimeString(),
+                                date.datetimeString,
                                 String(r.ticket_quantity),
                                 String(r.seat_class),
                                 String(r.ticket_price),
@@ -504,38 +507,7 @@ router.get('/showtime/:showtime/date/:date', (req, res) => {
                 });
             });
         });
-
-//////////////////////////
-
-    //             const wb = XLSX.utils.book_new();
-    // const ws_name = "reservations";
-    // const ws_data = [
-    //     [ "일련번호", "공연일시", "발권인원", "좌석등급", "판매가", "좌석번호", "구매처", "단체명", "구매자성명", "전화번호"],
-    // ];
-    // for(let r of req.body.data) {
-    //     ws_data.push([
-    //         r.source,
-    //         new Date(r.show_date).toLocaleString(),
-    //         r.ticket_quantity,
-    //         r.seat_class,
-    //         r.ticket_price,
-    //         r.seat_position.col+'열 '+r.seat_position.num+'번'
-    //     ]);
-    // }
-    // const ws = XLSX.utils.aoa_to_sheet(ws_data);
-    //
-    // wb.SheetNames.push(ws_name);
-    //
-    // wb.Sheets[ws_name] = ws;
-    //
-    // tmp.file(function _tempFileCreated(err, path, fd, cleanupCallback) {
-    //     if (err) throw err;
-    //     XLSX.writeFile(wb, path);
-    //     return res.download(path, 'tickets.xlsx');
-    // });
-
 });
-
 //엑셀 파싱 룰을 생성한다.
 router.post('/create', (req, res) => {
     const excel = new Excel(req.body.data);
@@ -551,7 +523,6 @@ router.post('/create', (req, res) => {
         }
     });
 });
-
 //엑셀 파싱 룰을 조회한다.
 router.get('/read/:key_name/:key_value', (req, res) => {
 
@@ -578,7 +549,6 @@ router.get('/read/:key_name/:key_value', (req, res) => {
         }
     });
 });
-
 //엑셀 파싱 룰을 전체 조회한다.
 router.get('/read', (req, res) => {
     //lean() -> 조회 속도 빠르게 하기 위함
@@ -594,7 +564,6 @@ router.get('/read', (req, res) => {
         }
     });
 });
-
 //엑셀 파싱 룰을 수정한다.
 router.put('/update', (req, res) => {
     Excel.update({_id:req.body.data._id}, {$set: req.body.data.update}, (err, results) => {
@@ -609,7 +578,6 @@ router.put('/update', (req, res) => {
         }
     });
 });
-
 //엑셀 파싱 룰을 삭제한다.
 router.delete('/delete', (req, res) => {
     Excel.remove({_id:req.body.data._id}, (err, results) => {

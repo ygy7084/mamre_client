@@ -1,3 +1,4 @@
-let a = [{a:1,b:2},{a:4,b:3}];
-
-console.log(a.map((item) => { return item.a}))
+const days = ['일', '월', '화', '수', '목', '금', '토'];
+let regex = new RegExp(/[0-9]+/);
+let date = new Date().toLocaleDateString()
+console.log(date);

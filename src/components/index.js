@@ -23,6 +23,8 @@ import CustomerFindingModal from './CustomerFindingModal';
 import Body from './Body';
 import LoaderModal from './LoaderModal';
 import ErrorModal from './ErrorModal';
+import ExtraFunctionModal from './ExtraFunctionModal';
+import MultiPrintModal from './MultiPrintModal';
 
 
 export {
@@ -50,5 +52,7 @@ export {
     CustomerFindingModal,
     Body,
     LoaderModal,
-    ErrorModal
+    ErrorModal,
+    ExtraFunctionModal,
+    MultiPrintModal
 };

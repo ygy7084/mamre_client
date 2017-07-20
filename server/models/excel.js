@@ -36,8 +36,9 @@ mongoose_function(mongoose);
      seat_position_num,      //좌석 번호
      ticket_quantity,        //티켓 수량
      ticket_code,            //티켓 코드
-     ticket_price            //티켓 가격
- */
+     ticket_price,           //티켓 가격
+     discount
+*/
 const Schema = mongoose.Schema;
 const Excel = new Schema({
     source : String,

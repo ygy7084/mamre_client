@@ -36,7 +36,8 @@ router.post('/ticketting', (req, res) => {
                         $set : {
                             seat_position:o.seat_position,
                             input_date:o.input_date,
-                            printed:o.printed
+                            printed:o.printed,
+                            delivered:o.delivered
                         }
                     },
                     upsert: true
@@ -116,9 +117,9 @@ router.post('/groupTicketting', (req, res) => {
                 if(!errIndex)
                     return res.status(500).json({message:'이미 예매 또는 발권된 좌석이 있어, 발권이 불가능합니다.'});
 
-                const deleteBulk = [];
+                const rollbackBulk = [];
                 for(let i=0;i<errIndex;i++)
-                    deleteBulk.push({
+                    rollbackBulk.push({
                         deleteOne : {
                             filter : {
                                 ticket_code:insertBulk[i].ticket_code
@@ -126,7 +127,7 @@ router.post('/groupTicketting', (req, res) => {
                         }
                     });
 
-                Reservation.bulkWrite(deleteBulk).then(() => {
+                Reservation.bulkWrite(rollbackBulk).then(() => {
                     return res.status(500).json({message:'이미 예매 또는 발권된 좌석이 있어, 발권이 불가능합니다.'});
                 }).catch((e) => {
                     return res.status(500).json({error:e, message:'알수없는오류'});
@@ -143,6 +144,252 @@ router.post('/groupTicketting', (req, res) => {
     });
 });
 
+router.post('/tickettingWithoutCustomer', (req, res) => {
+    const inputs = req.body.data;
+    const theater = inputs[0].theater;
+    const show = inputs[0].show;
+    //inputs 안의 모든 데이터의 theater 와 show는 각각 같은 값으로 이뤄져야 함
+
+    Showtime.find({theater:theater, show:show}).exec((err, results) => {
+        const schedule = results[0].schedule.map((e) => {
+            return new Date(e.date).getTime();
+        });
+
+        const insertBulk = [];
+        const wrong_data = [];
+
+        for (let o of inputs) {
+            if(schedule.indexOf(new Date(o.show_date).getTime())<0)
+                wrong_data.push(o);
+            else {
+                o.ticket_code = mongoose.Types.ObjectId();
+                insertBulk.push(o);
+            }
+        }
+
+        if(insertBulk.length !== 0) {
+            Reservation.insertMany(insertBulk).then((results) => {
+                const updateBulk = [];
+                for (let inserted of results)
+                    updateBulk.push({
+                        updateOne: {
+                            filter: {
+                                show: inserted.show,
+                                theater: inserted.theater,
+                                'schedule.date': inserted.show_date
+                            },
+                            update: {$addToSet: {"schedule.$.reservations": {_id: inserted._id}}}
+                        }
+                    });
+
+                if(updateBulk.length!==0) {
+                    Showtime.bulkWrite(updateBulk).then((results) => {
+                        return res.json({
+                            data: results
+                        })
+                    }).catch((e) => {
+                        return res.status(500).json({error:e,message:'발권 에러 : reservation을 showtime에 입력하는데 오류가 있습니다.'});
+                    });
+                }
+                else
+                    return res.json({
+                        data: {
+                            wrong_data: wrong_data
+                        }
+                    })
+            }).catch((e) => {
+
+                const errIndex = e.index;
+
+                if(!errIndex)
+                    return res.status(500).json({message:'이미 예매 또는 발권된 좌석이 있어, 발권이 불가능합니다.'});
+
+                const rollbackBulk = [];
+                for(let i=0;i<errIndex;i++)
+                    rollbackBulk.push({
+                        deleteOne : {
+                            filter : {
+                                ticket_code:insertBulk[i].ticket_code
+                            }
+                        }
+                    });
+
+                Reservation.bulkWrite(rollbackBulk).then(() => {
+                    return res.status(500).json({message:'이미 예매 또는 발권된 좌석이 있어, 발권이 불가능합니다.'});
+                }).catch((e) => {
+                    return res.status(500).json({error:e, message:'알수없는오류'});
+                });
+            });
+        }
+        else
+            return res.json({
+                data: {
+                    wrong_data : wrong_data
+                }
+            })
+
+    });
+});
+
+router.post('/tickettingWithCustomer', (req, res) => {
+
+    const inputs = req.body.data;
+    //inputs 안의 모든 데이터의 theater 와 show는 각각 같은 값으로 이뤄져야 함
+
+    let bulk = [];
+    let wrong_data = [];
+
+    for (let o of inputs) {
+        bulk.push({
+            updateOne: {
+                filter: {
+                    _id : o._id
+                },
+                update: {
+                    $set : {
+                        seat_position:o.seat_position,
+                        input_date:o.input_date,
+                        printed:o.printed,
+                        delivered:o.delivered
+                    }
+                }
+            },
+        });
+
+    }
+    if(bulk.length !== 0) {
+        Reservation.bulkWrite(bulk).then((results) => {
+
+            return res.json({
+                data: {
+                    wrong_data : wrong_data
+                }
+            })
+        }).catch((e) => {
+
+            const errIndex = e.index;
+
+            if (!errIndex)
+                return res.status(500).json({message: '이미 예매 또는 발권된 좌석이 있어, 발권이 불가능합니다.'});
+
+            const rollbackBulk = [];
+            for (let i = 0; i < errIndex; i++)
+                rollbackBulk.push({
+                    updateOne: {
+                        filter: {
+                            _id: inputs[i]._id
+                        },
+                        update: {
+                            $set: {
+                                seat_position: undefined,
+                                printed: false,
+                                delivered: false
+                            }
+                        }
+                    }
+                });
+
+            Reservation.bulkWrite(rollbackBulk).then(() => {
+                return res.status(500).json({message: '이미 예매 또는 발권된 좌석이 있어, 발권이 불가능합니다.'});
+            }).catch((e) => {
+                return res.status(500).json({error: e, message: '알수없는오류'});
+            });
+        })
+    }else {
+        return res.status(500).json({message:'데이터가 서버로 전송되지 않았습니다.'});
+    }
+
+
+});
+
+router.post('/preTicketting', (req, res) => {
+    const inputs = req.body.data;
+    const theater = inputs[0].theater;
+    const show = inputs[0].show;
+    //inputs 안의 모든 데이터의 theater 와 show는 각각 같은 값으로 이뤄져야 함
+
+    Showtime.find({theater:theater, show:show}).exec((err, results) => {
+        const schedule = results[0].schedule.map((e) => {
+            return new Date(e.date).getTime();
+        });
+
+        const insertBulk = [];
+        const wrong_data = [];
+
+        for (let o of inputs) {
+            if(schedule.indexOf(new Date(o.show_date).getTime())<0)
+                wrong_data.push(o);
+            else {
+                o.ticket_code = mongoose.Types.ObjectId();
+                //임시 티켓 코드 (테이블 키 중복에 걸리지 않도록)
+
+                insertBulk.push(o);
+            }
+        }
+
+        if(insertBulk.length !== 0) {
+            Reservation.insertMany(insertBulk).then((results) => {
+                const updateBulk = [];
+                for (let inserted of results)
+                    updateBulk.push({
+                        updateOne: {
+                            filter: {
+                                show: inserted.show,
+                                theater: inserted.theater,
+                                'schedule.date': inserted.show_date
+                            },
+                            update: {$addToSet: {"schedule.$.reservations": {_id: inserted._id}}}
+                        }
+                    });
+
+                if(updateBulk.length!==0) {
+                    Showtime.bulkWrite(updateBulk).then((results) => {
+                        return res.json({
+                            data: results
+                        })
+                    }).catch((e) => {
+                        return res.status(500).json({error:e,message:'발권 에러 : reservation을 showtime에 입력하는데 오류가 있습니다.'});
+                    });
+                }
+                else
+                    return res.json({
+                        data: {
+                            wrong_data: wrong_data
+                        }
+                    })
+            }).catch((e) => {
+
+                const errIndex = e.index;
+
+                if(!errIndex)
+                    return res.status(500).json({message:'이미 예매 또는 발권된 좌석이 있어, 발권이 불가능합니다.'});
+
+                const rollbackBulk = [];
+                for(let i=0;i<errIndex;i++)
+                    rollbackBulk.push({
+                        deleteOne : {
+                            filter : {
+                                ticket_code:insertBulk[i].ticket_code
+                            }
+                        }
+                    });
+
+                Reservation.bulkWrite(rollbackBulk).then(() => {
+                    return res.status(500).json({message:'이미 예매 또는 발권된 좌석이 있어, 발권이 불가능합니다.'});
+                }).catch((e) => {
+                    return res.status(500).json({error:e, message:'알수없는오류'});
+                });
+            });
+        }
+        else
+            return res.json({
+                data: {
+                    wrong_data : wrong_data
+                }
+            })
+
+    });
+});
 router.post('/createMany', (req, res) => {
     const inputs = req.body.data;
     const theater = inputs[0].theater;
@@ -236,6 +483,151 @@ router.post('/createMany', (req, res) => {
         }
     });
 });
+
+
+router.get('/interpark/showtime/:showtime/date/:date', (req, res) => {
+    const input = {
+        showtime: req.params.showtime,
+        date: new Date(parseInt(req.params.date))
+    };
+
+    Showtime.find({_id:input.showtime})
+        .populate('theater')
+        .exec((err, results) => {
+            if (err) {
+                console.error(err);
+                return res.status(500).json({message: 'Data Read Error - ' + err.message});
+            }
+            if (!results || results.length < 1) {
+                return res.status(500).json({message: 'Data Read Error - ' + '공연일정(Showtime)을 _id로 찾을 수 없습니다.'});
+            }
+            if (!results[0].theater) {
+                return res.status(500).json({message: 'Data Read Error - ' + '공연장(Theater)을 _id로 찾을 수 없습니다.'});
+            }
+
+            const schedules = results[0].schedule;
+            const theater_seats = results[0].theater.seats;
+            const Arr = [];
+
+            let i=0;
+            for (let seat of theater_seats) {
+                Arr.push({
+                    num                      :++i,
+                    show_date                :input.date.toLocaleString(),
+                    ticket_quantity          :1, // 좌석 당 예약은 하나
+                    seat_class               :seat.seat_class,
+                    ticket_price             :seat.seat_class==='VIP' ? 50000 : (seat.seat_class==='R' ? 40000 : undefined),
+                    seat_position            :{col : seat.col, num :seat.num},
+                    source                   :undefined,
+                    group_name               :undefined,
+                    customer_name            :undefined,
+                    customer_phone           :undefined
+                });
+            }
+
+            let schedule;
+            for (let s of schedules)
+                if (new Date(s.date).getTime() === parseInt(req.params.date))
+                    schedule = s;
+
+            const wrapper = {
+                data : input
+            };
+            fetch( `${req.protocol}://${req.get('Host')}`+'/api/showtime/crawl',{
+                method : 'POST',
+                headers : {'Content-Type' : 'application/json'},
+                body : JSON.stringify(wrapper)
+            })
+                .then(response =>{
+                    if(response.ok)
+                        return response.json();
+                    else
+                        return response.json().then(err => { throw err; })})
+                .then(response => {
+                    const crawled_seats = response.data;
+
+                    const reserved_seats = theater_seats.filter((ts) => {
+                        return crawled_seats.filter((cs) => {
+                                return ts.col===cs.col && ts.floor === cs.floor && ts.num === cs.num
+                            }).length===0;
+                    });
+
+                    for(let c of reserved_seats) {
+                        let obj = Arr.find((item) => {
+                            if (
+                                item.seat_position.col === c.col &&
+                                item.seat_position.num === c.num
+                            )
+                                return true;
+                        });
+                        if(obj) {
+                            obj.source = '인터파크';
+                            obj.customer_name = '미확인';
+                            obj.customer_phone = '미확인';
+                        }
+                        else {
+                            console.log(c);
+                        }
+                    }
+
+                    Reservation.populate(schedule.reservations, {path: '_id'}, (err, results) => {
+                        results.forEach((r) => {
+                            let reservation = r._id; // _id로 객체가 감싸여 있다,
+                            //mongoose documnet to javascript object
+                            if( reservation &&
+                                reservation.seat_position &&
+                                reservation.seat_position.col &&
+                                reservation.seat_position.num) {
+
+                                let obj = Arr.find((item) => {
+                                    if(
+                                        item.seat_position.col === reservation.seat_position.col &&
+                                        item.seat_position.num === reservation.seat_position.num
+                                    )
+                                        return true;
+                                });
+
+                                if(obj) {
+                                    obj.customer_name =  reservation.customer_name;
+                                    obj.customer_phone = reservation.customer_phone;
+                                    obj.group_name = reservation.group_name;
+                                    obj.source = reservation.source;
+                                    obj.ticket_price = reservation.ticket_price;
+                                }
+                                else {
+                                    console.log(reservation.seat_position);
+                                }
+                            }
+                        });
+
+
+                        const interpark = [];
+
+                        for(let r of Arr) {
+                            for(let prop in r)
+                                r[prop] = r[prop] ? r[prop] : '';
+                            if(r.source==='인터파크')
+                                interpark.push({
+                                    show_date:new Date(r.show_date),
+                                    seat_class:r.seat_class,
+                                    seat_position:r.seat_position,
+                                    ticket_quantity:1,
+                                    ticket_price:r.ticket_price,
+                                    source:r.source
+                                });
+                        }
+
+
+                        return res.json({
+                            data : interpark
+                        });
+                    });
+                });
+        });
+});
+
+
+
 
 router.delete('/delete/source', (req, res) => {
     const data = req.body.data;

@@ -77,9 +77,12 @@ router.get('/showtime/:showtime/date/:date', (req, res) => {
                     for(let es of excel_seats) {
                         if(!reserved_seats.find((rs) => {
                             return es.col===rs.col && es.floor===rs.floor && es.num===rs.num;
-                        }))
-                            reserved_seats.push(es);
-
+                        })) {
+                            let es_added_coords = theater_seats.find((ts) => {
+                                return es.col===ts.col && es.floor===ts.floor && es.num===ts.num;
+                            });
+                            reserved_seats.push(es_added_coords);
+                        }
                     }
 
                     not_reserved_seats = theater_seats.filter((ts) => {
