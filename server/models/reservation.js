@@ -34,6 +34,7 @@ const Reservation = new Schema({
         col : String,
         num : String
     },
+    seat_serialNumber:Number,
     ticket_quantity : Number,
     ticket_code : String,
     ticket_price : Number,

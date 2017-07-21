@@ -25,6 +25,7 @@ class Main extends React.Component {
             show : null,
             showtime : null,
             seats : [],
+            reserved_seats:[],
             seats_picked : [],
             times : [],
             time_picked : null,
@@ -155,17 +156,29 @@ class Main extends React.Component {
     }
     chooseCustomer(mode, customers) {
         if(mode==='preTicket') {
-            this.setState({preTickettingStart: true});
+            this.setState({
+                preTickettingStart: true,
+                customers_picked: customers});
             this.loadSeats(this.state.time_picked, true);
         }
 
             // return false;
             //좌석 설정해주는 창이 뜨도록!
             //this.preTickettingWithoutSeats(customers);
-        else
+        else {
+            for(let i of customers) {
+                for(let seat of this.state.reserved_seats) {
+                    if(!i.seat_position) break;
+                    else {
+                        if(seat.col===i.seat_position.col && seat.num===i.seat_position.num)
+                            i.serialNum = seat.serialNum;
+                    }
+                }
+            }
             this.setState({
                 customers_picked: customers,
             });
+        }
     }
     seats_reset() {
         if(this.state.seats_picked && this.state.seats_picked.length)
@@ -186,6 +199,9 @@ class Main extends React.Component {
 
     //완성
     groupTicketting(group_name, price, combine) {
+        if(this.state.reTickettingStart || this.state.preTickettingStart)
+            return false;
+
         const data = [];
         const source = '단체';
 
@@ -295,8 +311,8 @@ class Main extends React.Component {
             });
     }
     reTicketting(combine) {
-        if(this.state.reTickettingStart)
-            this.setState({reTickettingStart:false});
+        if(this.state.reTickettingStart || this.state.preTickettingStart)
+            return false;
 
         let data = [];
 
@@ -614,9 +630,8 @@ class Main extends React.Component {
 
     }
     preTicketting(combine) {
-        if(this.state.reTickettingStart) {
+        if(this.state.reTickettingStart || this.state.preTickettingStart)
             return false;
-        }
         /*
         차후에 두개의 예약을 묶어야 한다.
         고객 데이터 없는 이 Reservation과
@@ -1116,6 +1131,7 @@ class Main extends React.Component {
                         loaded:true,
                         time_picked:time,
                         seats:seats,
+                        reserved_seats : res.data.reserved_seats,
                         seats_picked:[],
                         price_picked: null,
                         customers: [],

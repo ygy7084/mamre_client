@@ -44842,6 +44842,11 @@ var Right = function (_React$Component) {
                                         'th',
                                         { style: style.customersTable.header_th },
                                         '\uC88C\uC11D\uBC88\uD638'
+                                    ),
+                                    _react2.default.createElement(
+                                        'th',
+                                        { style: style.customersTable.header_th },
+                                        '\uACE0\uC720\uBC88\uD638'
                                     )
                                 )
                             ),
@@ -44876,6 +44881,11 @@ var Right = function (_React$Component) {
                                             'td',
                                             { style: style.customersTable.body_td },
                                             customer.seat_position ? customer.seat_position.col + '열 ' + customer.seat_position.num + '번' : '미배정'
+                                        ),
+                                        _react2.default.createElement(
+                                            'td',
+                                            { style: style.customersTable.body_td },
+                                            customer.serialNum ? customer.serialNum : '미배정'
                                         )
                                     );
                                 })
@@ -45121,14 +45131,14 @@ var style = {
             textAlign: 'center',
             fontWeight: 'normal',
             padding: '3px',
-            width: '120px'
+            width: '96px'
         },
         body: {
             background: 'rgb(245,245,245)',
             borderTop: '1px solid #ddd'
         },
         body_td: {
-            width: '120px',
+            width: '96px',
             padding: '3px'
         }
     },
@@ -45767,6 +45777,7 @@ var Main = function (_React$Component) {
             show: null,
             showtime: null,
             seats: [],
+            reserved_seats: [],
             seats_picked: [],
             times: [],
             time_picked: null,
@@ -45960,16 +45971,69 @@ var Main = function (_React$Component) {
         key: 'chooseCustomer',
         value: function chooseCustomer(mode, customers) {
             if (mode === 'preTicket') {
-                this.setState({ preTickettingStart: true });
+                this.setState({
+                    preTickettingStart: true,
+                    customers_picked: customers });
                 this.loadSeats(this.state.time_picked, true);
             }
 
             // return false;
             //좌석 설정해주는 창이 뜨도록!
             //this.preTickettingWithoutSeats(customers);
-            else this.setState({
-                    customers_picked: customers
-                });
+            else {
+                    var _iteratorNormalCompletion4 = true;
+                    var _didIteratorError4 = false;
+                    var _iteratorError4 = undefined;
+
+                    try {
+                        for (var _iterator4 = customers[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+                            var i = _step4.value;
+                            var _iteratorNormalCompletion5 = true;
+                            var _didIteratorError5 = false;
+                            var _iteratorError5 = undefined;
+
+                            try {
+                                for (var _iterator5 = this.state.reserved_seats[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
+                                    var seat = _step5.value;
+
+                                    if (!i.seat_position) break;else {
+                                        if (seat.col === i.seat_position.col && seat.num === i.seat_position.num) i.serialNum = seat.serialNum;
+                                    }
+                                }
+                            } catch (err) {
+                                _didIteratorError5 = true;
+                                _iteratorError5 = err;
+                            } finally {
+                                try {
+                                    if (!_iteratorNormalCompletion5 && _iterator5.return) {
+                                        _iterator5.return();
+                                    }
+                                } finally {
+                                    if (_didIteratorError5) {
+                                        throw _iteratorError5;
+                                    }
+                                }
+                            }
+                        }
+                    } catch (err) {
+                        _didIteratorError4 = true;
+                        _iteratorError4 = err;
+                    } finally {
+                        try {
+                            if (!_iteratorNormalCompletion4 && _iterator4.return) {
+                                _iterator4.return();
+                            }
+                        } finally {
+                            if (_didIteratorError4) {
+                                throw _iteratorError4;
+                            }
+                        }
+                    }
+
+                    this.setState({
+                        customers_picked: customers
+                    });
+                }
         }
     }, {
         key: 'seats_reset',
@@ -45993,16 +46057,18 @@ var Main = function (_React$Component) {
         value: function groupTicketting(group_name, price, combine) {
             var _this3 = this;
 
+            if (this.state.reTickettingStart || this.state.preTickettingStart) return false;
+
             var data = [];
             var source = '단체';
 
-            var _iteratorNormalCompletion4 = true;
-            var _didIteratorError4 = false;
-            var _iteratorError4 = undefined;
+            var _iteratorNormalCompletion6 = true;
+            var _didIteratorError6 = false;
+            var _iteratorError6 = undefined;
 
             try {
-                for (var _iterator4 = this.state.seats_picked[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
-                    var p = _step4.value;
+                for (var _iterator6 = this.state.seats_picked[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
+                    var p = _step6.value;
 
                     var reservation = {
                         input_date: new Date(),
@@ -46025,16 +46091,16 @@ var Main = function (_React$Component) {
                     data.push(reservation);
                 }
             } catch (err) {
-                _didIteratorError4 = true;
-                _iteratorError4 = err;
+                _didIteratorError6 = true;
+                _iteratorError6 = err;
             } finally {
                 try {
-                    if (!_iteratorNormalCompletion4 && _iterator4.return) {
-                        _iterator4.return();
+                    if (!_iteratorNormalCompletion6 && _iterator6.return) {
+                        _iterator6.return();
                     }
                 } finally {
-                    if (_didIteratorError4) {
-                        throw _iteratorError4;
+                    if (_didIteratorError6) {
+                        throw _iteratorError6;
                     }
                 }
             }
@@ -46118,17 +46184,17 @@ var Main = function (_React$Component) {
         value: function reTicketting(combine) {
             var _this4 = this;
 
-            if (this.state.reTickettingStart) this.setState({ reTickettingStart: false });
+            if (this.state.reTickettingStart || this.state.preTickettingStart) return false;
 
             var data = [];
 
-            var _iteratorNormalCompletion5 = true;
-            var _didIteratorError5 = false;
-            var _iteratorError5 = undefined;
+            var _iteratorNormalCompletion7 = true;
+            var _didIteratorError7 = false;
+            var _iteratorError7 = undefined;
 
             try {
-                for (var _iterator5 = this.state.seats_picked[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
-                    var p = _step5.value;
+                for (var _iterator7 = this.state.seats_picked[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
+                    var p = _step7.value;
 
                     var price = p.price;
                     if (!price) {
@@ -46148,16 +46214,16 @@ var Main = function (_React$Component) {
                     data.push(reservation);
                 }
             } catch (err) {
-                _didIteratorError5 = true;
-                _iteratorError5 = err;
+                _didIteratorError7 = true;
+                _iteratorError7 = err;
             } finally {
                 try {
-                    if (!_iteratorNormalCompletion5 && _iterator5.return) {
-                        _iterator5.return();
+                    if (!_iteratorNormalCompletion7 && _iterator7.return) {
+                        _iterator7.return();
                     }
                 } finally {
-                    if (_didIteratorError5) {
-                        throw _iteratorError5;
+                    if (_didIteratorError7) {
+                        throw _iteratorError7;
                     }
                 }
             }
@@ -46217,13 +46283,13 @@ var Main = function (_React$Component) {
             var data = [];
             var source = '현장';
 
-            var _iteratorNormalCompletion6 = true;
-            var _didIteratorError6 = false;
-            var _iteratorError6 = undefined;
+            var _iteratorNormalCompletion8 = true;
+            var _didIteratorError8 = false;
+            var _iteratorError8 = undefined;
 
             try {
-                for (var _iterator6 = this.state.seats_picked[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
-                    var p = _step6.value;
+                for (var _iterator8 = this.state.seats_picked[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
+                    var p = _step8.value;
 
                     var reservation = {
                         input_date: new Date(),
@@ -46245,16 +46311,16 @@ var Main = function (_React$Component) {
                     data.push(reservation);
                 }
             } catch (err) {
-                _didIteratorError6 = true;
-                _iteratorError6 = err;
+                _didIteratorError8 = true;
+                _iteratorError8 = err;
             } finally {
                 try {
-                    if (!_iteratorNormalCompletion6 && _iterator6.return) {
-                        _iterator6.return();
+                    if (!_iteratorNormalCompletion8 && _iterator8.return) {
+                        _iterator8.return();
                     }
                 } finally {
-                    if (_didIteratorError6) {
-                        throw _iteratorError6;
+                    if (_didIteratorError8) {
+                        throw _iteratorError8;
                     }
                 }
             }
@@ -46338,20 +46404,20 @@ var Main = function (_React$Component) {
             var seats_picked = JSON.parse(JSON.stringify(this.state.seats_picked));
             var customers_picked = JSON.parse(JSON.stringify(this.state.customers_picked));
             var data = [];
-            var _iteratorNormalCompletion7 = true;
-            var _didIteratorError7 = false;
-            var _iteratorError7 = undefined;
+            var _iteratorNormalCompletion9 = true;
+            var _didIteratorError9 = false;
+            var _iteratorError9 = undefined;
 
             try {
-                for (var _iterator7 = seats_picked[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
-                    var seat = _step7.value;
-                    var _iteratorNormalCompletion9 = true;
-                    var _didIteratorError9 = false;
-                    var _iteratorError9 = undefined;
+                for (var _iterator9 = seats_picked[Symbol.iterator](), _step9; !(_iteratorNormalCompletion9 = (_step9 = _iterator9.next()).done); _iteratorNormalCompletion9 = true) {
+                    var seat = _step9.value;
+                    var _iteratorNormalCompletion11 = true;
+                    var _didIteratorError11 = false;
+                    var _iteratorError11 = undefined;
 
                     try {
-                        for (var _iterator9 = customers_picked[Symbol.iterator](), _step9; !(_iteratorNormalCompletion9 = (_step9 = _iterator9.next()).done); _iteratorNormalCompletion9 = true) {
-                            var customer = _step9.value;
+                        for (var _iterator11 = customers_picked[Symbol.iterator](), _step11; !(_iteratorNormalCompletion11 = (_step11 = _iterator11.next()).done); _iteratorNormalCompletion11 = true) {
+                            var customer = _step11.value;
 
                             if (!customer.seat_position && seat.seat_class === customer.seat_class) {
                                 customer.seat_position = {
@@ -46363,42 +46429,42 @@ var Main = function (_React$Component) {
                             }
                         }
                     } catch (err) {
-                        _didIteratorError9 = true;
-                        _iteratorError9 = err;
+                        _didIteratorError11 = true;
+                        _iteratorError11 = err;
                     } finally {
                         try {
-                            if (!_iteratorNormalCompletion9 && _iterator9.return) {
-                                _iterator9.return();
+                            if (!_iteratorNormalCompletion11 && _iterator11.return) {
+                                _iterator11.return();
                             }
                         } finally {
-                            if (_didIteratorError9) {
-                                throw _iteratorError9;
+                            if (_didIteratorError11) {
+                                throw _iteratorError11;
                             }
                         }
                     }
                 }
             } catch (err) {
-                _didIteratorError7 = true;
-                _iteratorError7 = err;
+                _didIteratorError9 = true;
+                _iteratorError9 = err;
             } finally {
                 try {
-                    if (!_iteratorNormalCompletion7 && _iterator7.return) {
-                        _iterator7.return();
+                    if (!_iteratorNormalCompletion9 && _iterator9.return) {
+                        _iterator9.return();
                     }
                 } finally {
-                    if (_didIteratorError7) {
-                        throw _iteratorError7;
+                    if (_didIteratorError9) {
+                        throw _iteratorError9;
                     }
                 }
             }
 
-            var _iteratorNormalCompletion8 = true;
-            var _didIteratorError8 = false;
-            var _iteratorError8 = undefined;
+            var _iteratorNormalCompletion10 = true;
+            var _didIteratorError10 = false;
+            var _iteratorError10 = undefined;
 
             try {
-                for (var _iterator8 = customers_picked[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
-                    var _customer = _step8.value;
+                for (var _iterator10 = customers_picked[Symbol.iterator](), _step10; !(_iteratorNormalCompletion10 = (_step10 = _iterator10.next()).done); _iteratorNormalCompletion10 = true) {
+                    var _customer = _step10.value;
 
                     var reservation = {
                         _id: _customer._id,
@@ -46432,16 +46498,16 @@ var Main = function (_React$Component) {
                  delivered:true
                      */
             } catch (err) {
-                _didIteratorError8 = true;
-                _iteratorError8 = err;
+                _didIteratorError10 = true;
+                _iteratorError10 = err;
             } finally {
                 try {
-                    if (!_iteratorNormalCompletion8 && _iterator8.return) {
-                        _iterator8.return();
+                    if (!_iteratorNormalCompletion10 && _iterator10.return) {
+                        _iterator10.return();
                     }
                 } finally {
-                    if (_didIteratorError8) {
-                        throw _iteratorError8;
+                    if (_didIteratorError10) {
+                        throw _iteratorError10;
                     }
                 }
             }
@@ -46521,9 +46587,7 @@ var Main = function (_React$Component) {
         value: function preTicketting(combine) {
             var _this7 = this;
 
-            if (this.state.reTickettingStart) {
-                return false;
-            }
+            if (this.state.reTickettingStart || this.state.preTickettingStart) return false;
             /*
             차후에 두개의 예약을 묶어야 한다.
             고객 데이터 없는 이 Reservation과
@@ -46531,13 +46595,13 @@ var Main = function (_React$Component) {
              */
             var data = [];
 
-            var _iteratorNormalCompletion10 = true;
-            var _didIteratorError10 = false;
-            var _iteratorError10 = undefined;
+            var _iteratorNormalCompletion12 = true;
+            var _didIteratorError12 = false;
+            var _iteratorError12 = undefined;
 
             try {
-                for (var _iterator10 = this.state.seats_picked[Symbol.iterator](), _step10; !(_iteratorNormalCompletion10 = (_step10 = _iterator10.next()).done); _iteratorNormalCompletion10 = true) {
-                    var p = _step10.value;
+                for (var _iterator12 = this.state.seats_picked[Symbol.iterator](), _step12; !(_iteratorNormalCompletion12 = (_step12 = _iterator12.next()).done); _iteratorNormalCompletion12 = true) {
+                    var p = _step12.value;
 
                     var reservation = {
                         input_date: new Date(),
@@ -46558,16 +46622,16 @@ var Main = function (_React$Component) {
                     data.push(reservation);
                 }
             } catch (err) {
-                _didIteratorError10 = true;
-                _iteratorError10 = err;
+                _didIteratorError12 = true;
+                _iteratorError12 = err;
             } finally {
                 try {
-                    if (!_iteratorNormalCompletion10 && _iterator10.return) {
-                        _iterator10.return();
+                    if (!_iteratorNormalCompletion12 && _iterator12.return) {
+                        _iterator12.return();
                     }
                 } finally {
-                    if (_didIteratorError10) {
-                        throw _iteratorError10;
+                    if (_didIteratorError12) {
+                        throw _iteratorError12;
                     }
                 }
             }
@@ -46721,13 +46785,13 @@ var Main = function (_React$Component) {
                 // let customers_picked = JSON.parse(JSON.stringify(customers_picked));
                 var data = [];
 
-                var _iteratorNormalCompletion11 = true;
-                var _didIteratorError11 = false;
-                var _iteratorError11 = undefined;
+                var _iteratorNormalCompletion13 = true;
+                var _didIteratorError13 = false;
+                var _iteratorError13 = undefined;
 
                 try {
-                    for (var _iterator11 = customers_picked[Symbol.iterator](), _step11; !(_iteratorNormalCompletion11 = (_step11 = _iterator11.next()).done); _iteratorNormalCompletion11 = true) {
-                        var customer = _step11.value;
+                    for (var _iterator13 = customers_picked[Symbol.iterator](), _step13; !(_iteratorNormalCompletion13 = (_step13 = _iterator13.next()).done); _iteratorNormalCompletion13 = true) {
+                        var customer = _step13.value;
 
                         var reservation = {
                             _id: customer._id,
@@ -46736,16 +46800,16 @@ var Main = function (_React$Component) {
                         data.push(reservation);
                     }
                 } catch (err) {
-                    _didIteratorError11 = true;
-                    _iteratorError11 = err;
+                    _didIteratorError13 = true;
+                    _iteratorError13 = err;
                 } finally {
                     try {
-                        if (!_iteratorNormalCompletion11 && _iterator11.return) {
-                            _iterator11.return();
+                        if (!_iteratorNormalCompletion13 && _iterator13.return) {
+                            _iterator13.return();
                         }
                     } finally {
-                        if (_didIteratorError11) {
-                            throw _iteratorError11;
+                        if (_didIteratorError13) {
+                            throw _iteratorError13;
                         }
                     }
                 }
@@ -46782,20 +46846,20 @@ var Main = function (_React$Component) {
             var seats_picked = JSON.parse(JSON.stringify(this.state.seats_picked));
             var customers_picked = JSON.parse(JSON.stringify(this.state.customers_picked));
             var data = [];
-            var _iteratorNormalCompletion12 = true;
-            var _didIteratorError12 = false;
-            var _iteratorError12 = undefined;
+            var _iteratorNormalCompletion14 = true;
+            var _didIteratorError14 = false;
+            var _iteratorError14 = undefined;
 
             try {
-                for (var _iterator12 = seats_picked[Symbol.iterator](), _step12; !(_iteratorNormalCompletion12 = (_step12 = _iterator12.next()).done); _iteratorNormalCompletion12 = true) {
-                    var seat = _step12.value;
-                    var _iteratorNormalCompletion14 = true;
-                    var _didIteratorError14 = false;
-                    var _iteratorError14 = undefined;
+                for (var _iterator14 = seats_picked[Symbol.iterator](), _step14; !(_iteratorNormalCompletion14 = (_step14 = _iterator14.next()).done); _iteratorNormalCompletion14 = true) {
+                    var seat = _step14.value;
+                    var _iteratorNormalCompletion16 = true;
+                    var _didIteratorError16 = false;
+                    var _iteratorError16 = undefined;
 
                     try {
-                        for (var _iterator14 = customers_picked[Symbol.iterator](), _step14; !(_iteratorNormalCompletion14 = (_step14 = _iterator14.next()).done); _iteratorNormalCompletion14 = true) {
-                            var customer = _step14.value;
+                        for (var _iterator16 = customers_picked[Symbol.iterator](), _step16; !(_iteratorNormalCompletion16 = (_step16 = _iterator16.next()).done); _iteratorNormalCompletion16 = true) {
+                            var customer = _step16.value;
 
                             if (!customer.seat_position && seat.seat_class === customer.seat_class) {
                                 customer.seat_position = {
@@ -46807,42 +46871,42 @@ var Main = function (_React$Component) {
                             }
                         }
                     } catch (err) {
-                        _didIteratorError14 = true;
-                        _iteratorError14 = err;
+                        _didIteratorError16 = true;
+                        _iteratorError16 = err;
                     } finally {
                         try {
-                            if (!_iteratorNormalCompletion14 && _iterator14.return) {
-                                _iterator14.return();
+                            if (!_iteratorNormalCompletion16 && _iterator16.return) {
+                                _iterator16.return();
                             }
                         } finally {
-                            if (_didIteratorError14) {
-                                throw _iteratorError14;
+                            if (_didIteratorError16) {
+                                throw _iteratorError16;
                             }
                         }
                     }
                 }
             } catch (err) {
-                _didIteratorError12 = true;
-                _iteratorError12 = err;
+                _didIteratorError14 = true;
+                _iteratorError14 = err;
             } finally {
                 try {
-                    if (!_iteratorNormalCompletion12 && _iterator12.return) {
-                        _iterator12.return();
+                    if (!_iteratorNormalCompletion14 && _iterator14.return) {
+                        _iterator14.return();
                     }
                 } finally {
-                    if (_didIteratorError12) {
-                        throw _iteratorError12;
+                    if (_didIteratorError14) {
+                        throw _iteratorError14;
                     }
                 }
             }
 
-            var _iteratorNormalCompletion13 = true;
-            var _didIteratorError13 = false;
-            var _iteratorError13 = undefined;
+            var _iteratorNormalCompletion15 = true;
+            var _didIteratorError15 = false;
+            var _iteratorError15 = undefined;
 
             try {
-                for (var _iterator13 = customers_picked[Symbol.iterator](), _step13; !(_iteratorNormalCompletion13 = (_step13 = _iterator13.next()).done); _iteratorNormalCompletion13 = true) {
-                    var _customer2 = _step13.value;
+                for (var _iterator15 = customers_picked[Symbol.iterator](), _step15; !(_iteratorNormalCompletion15 = (_step15 = _iterator15.next()).done); _iteratorNormalCompletion15 = true) {
+                    var _customer2 = _step15.value;
 
                     var reservation = {
                         _id: _customer2._id,
@@ -46857,16 +46921,16 @@ var Main = function (_React$Component) {
                     data.push(reservation);
                 }
             } catch (err) {
-                _didIteratorError13 = true;
-                _iteratorError13 = err;
+                _didIteratorError15 = true;
+                _iteratorError15 = err;
             } finally {
                 try {
-                    if (!_iteratorNormalCompletion13 && _iterator13.return) {
-                        _iterator13.return();
+                    if (!_iteratorNormalCompletion15 && _iterator15.return) {
+                        _iterator15.return();
                     }
                 } finally {
-                    if (_didIteratorError13) {
-                        throw _iteratorError13;
+                    if (_didIteratorError15) {
+                        throw _iteratorError15;
                     }
                 }
             }
@@ -46920,52 +46984,52 @@ var Main = function (_React$Component) {
                 var customers = [];
 
                 if (Number(input)) {
-                    var _iteratorNormalCompletion15 = true;
-                    var _didIteratorError15 = false;
-                    var _iteratorError15 = undefined;
+                    var _iteratorNormalCompletion17 = true;
+                    var _didIteratorError17 = false;
+                    var _iteratorError17 = undefined;
 
                     try {
-                        for (var _iterator15 = res.data[Symbol.iterator](), _step15; !(_iteratorNormalCompletion15 = (_step15 = _iterator15.next()).done); _iteratorNormalCompletion15 = true) {
-                            var _r = _step15.value;
+                        for (var _iterator17 = res.data[Symbol.iterator](), _step17; !(_iteratorNormalCompletion17 = (_step17 = _iterator17.next()).done); _iteratorNormalCompletion17 = true) {
+                            var _r = _step17.value;
 
                             if (input === _r.customer_phone && !_r.printed) customers.push(_r);
                         }
                     } catch (err) {
-                        _didIteratorError15 = true;
-                        _iteratorError15 = err;
+                        _didIteratorError17 = true;
+                        _iteratorError17 = err;
                     } finally {
                         try {
-                            if (!_iteratorNormalCompletion15 && _iterator15.return) {
-                                _iterator15.return();
+                            if (!_iteratorNormalCompletion17 && _iterator17.return) {
+                                _iterator17.return();
                             }
                         } finally {
-                            if (_didIteratorError15) {
-                                throw _iteratorError15;
+                            if (_didIteratorError17) {
+                                throw _iteratorError17;
                             }
                         }
                     }
                 } else {
-                    var _iteratorNormalCompletion16 = true;
-                    var _didIteratorError16 = false;
-                    var _iteratorError16 = undefined;
+                    var _iteratorNormalCompletion18 = true;
+                    var _didIteratorError18 = false;
+                    var _iteratorError18 = undefined;
 
                     try {
-                        for (var _iterator16 = res.data[Symbol.iterator](), _step16; !(_iteratorNormalCompletion16 = (_step16 = _iterator16.next()).done); _iteratorNormalCompletion16 = true) {
-                            var _r2 = _step16.value;
+                        for (var _iterator18 = res.data[Symbol.iterator](), _step18; !(_iteratorNormalCompletion18 = (_step18 = _iterator18.next()).done); _iteratorNormalCompletion18 = true) {
+                            var _r2 = _step18.value;
 
                             if (input === _r2.customer_name && !_r2.printed) customers.push(_r2);
                         }
                     } catch (err) {
-                        _didIteratorError16 = true;
-                        _iteratorError16 = err;
+                        _didIteratorError18 = true;
+                        _iteratorError18 = err;
                     } finally {
                         try {
-                            if (!_iteratorNormalCompletion16 && _iterator16.return) {
-                                _iterator16.return();
+                            if (!_iteratorNormalCompletion18 && _iterator18.return) {
+                                _iterator18.return();
                             }
                         } finally {
-                            if (_didIteratorError16) {
-                                throw _iteratorError16;
+                            if (_didIteratorError18) {
+                                throw _iteratorError18;
                             }
                         }
                     }
@@ -47020,27 +47084,27 @@ var Main = function (_React$Component) {
         key: 'changePriceAll',
         value: function changePriceAll(ratio) {
             var seats_picked = JSON.parse(JSON.stringify(this.state.seats_picked));
-            var _iteratorNormalCompletion17 = true;
-            var _didIteratorError17 = false;
-            var _iteratorError17 = undefined;
+            var _iteratorNormalCompletion19 = true;
+            var _didIteratorError19 = false;
+            var _iteratorError19 = undefined;
 
             try {
-                for (var _iterator17 = seats_picked[Symbol.iterator](), _step17; !(_iteratorNormalCompletion17 = (_step17 = _iterator17.next()).done); _iteratorNormalCompletion17 = true) {
-                    var seat = _step17.value;
+                for (var _iterator19 = seats_picked[Symbol.iterator](), _step19; !(_iteratorNormalCompletion19 = (_step19 = _iterator19.next()).done); _iteratorNormalCompletion19 = true) {
+                    var seat = _step19.value;
 
                     if (seat.seat_class === 'VIP') seat.price = 50000 * ratio;else if (seat.seat_class === 'R') seat.price = 40000 * ratio;
                 }
             } catch (err) {
-                _didIteratorError17 = true;
-                _iteratorError17 = err;
+                _didIteratorError19 = true;
+                _iteratorError19 = err;
             } finally {
                 try {
-                    if (!_iteratorNormalCompletion17 && _iterator17.return) {
-                        _iterator17.return();
+                    if (!_iteratorNormalCompletion19 && _iterator19.return) {
+                        _iterator19.return();
                     }
                 } finally {
-                    if (_didIteratorError17) {
-                        throw _iteratorError17;
+                    if (_didIteratorError19) {
+                        throw _iteratorError19;
                     }
                 }
             }
@@ -47084,13 +47148,13 @@ var Main = function (_React$Component) {
             // 선택한 날짜에 이뤄지는 공연의 스케쥴을 불러온다.
             // times에는 시간 정보 뿐 아니라 날짜 정보도 있는 Date 객체를 저장한다.
             var times = [];
-            var _iteratorNormalCompletion18 = true;
-            var _didIteratorError18 = false;
-            var _iteratorError18 = undefined;
+            var _iteratorNormalCompletion20 = true;
+            var _didIteratorError20 = false;
+            var _iteratorError20 = undefined;
 
             try {
-                for (var _iterator18 = schedules[Symbol.iterator](), _step18; !(_iteratorNormalCompletion18 = (_step18 = _iterator18.next()).done); _iteratorNormalCompletion18 = true) {
-                    var s = _step18.value;
+                for (var _iterator20 = schedules[Symbol.iterator](), _step20; !(_iteratorNormalCompletion20 = (_step20 = _iterator20.next()).done); _iteratorNormalCompletion20 = true) {
+                    var s = _step20.value;
 
                     var schedule_date = new Date(s.date);
                     if (schedule_date.toLocaleDateString() === date.toLocaleDateString()) times.push(schedule_date);
@@ -47098,16 +47162,16 @@ var Main = function (_React$Component) {
 
                 // 공연 시간 로드 및 좌석, 구매자 정보 초기화
             } catch (err) {
-                _didIteratorError18 = true;
-                _iteratorError18 = err;
+                _didIteratorError20 = true;
+                _iteratorError20 = err;
             } finally {
                 try {
-                    if (!_iteratorNormalCompletion18 && _iterator18.return) {
-                        _iterator18.return();
+                    if (!_iteratorNormalCompletion20 && _iterator20.return) {
+                        _iterator20.return();
                     }
                 } finally {
-                    if (_didIteratorError18) {
-                        throw _iteratorError18;
+                    if (_didIteratorError20) {
+                        throw _iteratorError20;
                     }
                 }
             }
@@ -47181,27 +47245,27 @@ var Main = function (_React$Component) {
                 /*
                 가격 정보를 저장한다.
                  */
-                var _iteratorNormalCompletion19 = true;
-                var _didIteratorError19 = false;
-                var _iteratorError19 = undefined;
+                var _iteratorNormalCompletion21 = true;
+                var _didIteratorError21 = false;
+                var _iteratorError21 = undefined;
 
                 try {
-                    for (var _iterator19 = res.data.not_reserved_seats[Symbol.iterator](), _step19; !(_iteratorNormalCompletion19 = (_step19 = _iterator19.next()).done); _iteratorNormalCompletion19 = true) {
-                        var seat = _step19.value;
+                    for (var _iterator21 = res.data.not_reserved_seats[Symbol.iterator](), _step21; !(_iteratorNormalCompletion21 = (_step21 = _iterator21.next()).done); _iteratorNormalCompletion21 = true) {
+                        var seat = _step21.value;
 
                         if (seat.seat_class === 'VIP') seat.price = 50000;else if (seat.seat_class === 'R') seat.price = 40000;else throw new Error('좌석 등급을 식별할 수 없습니다. - ' + seat.seat_class);
                     }
                 } catch (err) {
-                    _didIteratorError19 = true;
-                    _iteratorError19 = err;
+                    _didIteratorError21 = true;
+                    _iteratorError21 = err;
                 } finally {
                     try {
-                        if (!_iteratorNormalCompletion19 && _iterator19.return) {
-                            _iterator19.return();
+                        if (!_iteratorNormalCompletion21 && _iterator21.return) {
+                            _iterator21.return();
                         }
                     } finally {
-                        if (_didIteratorError19) {
-                            throw _iteratorError19;
+                        if (_didIteratorError21) {
+                            throw _iteratorError21;
                         }
                     }
                 }
@@ -47215,6 +47279,7 @@ var Main = function (_React$Component) {
                     loaded: true,
                     time_picked: time,
                     seats: seats,
+                    reserved_seats: res.data.reserved_seats,
                     seats_picked: [],
                     price_picked: null,
                     customers: [],
@@ -47234,22 +47299,22 @@ var Main = function (_React$Component) {
 
             if (Array.isArray(seats)) {
                 var seats_cleaned = [];
-                var _iteratorNormalCompletion20 = true;
-                var _didIteratorError20 = false;
-                var _iteratorError20 = undefined;
+                var _iteratorNormalCompletion22 = true;
+                var _didIteratorError22 = false;
+                var _iteratorError22 = undefined;
 
                 try {
-                    for (var _iterator20 = seats[Symbol.iterator](), _step20; !(_iteratorNormalCompletion20 = (_step20 = _iterator20.next()).done); _iteratorNormalCompletion20 = true) {
-                        var s = _step20.value;
+                    for (var _iterator22 = seats[Symbol.iterator](), _step22; !(_iteratorNormalCompletion22 = (_step22 = _iterator22.next()).done); _iteratorNormalCompletion22 = true) {
+                        var s = _step22.value;
 
                         var temp = true;
-                        var _iteratorNormalCompletion22 = true;
-                        var _didIteratorError22 = false;
-                        var _iteratorError22 = undefined;
+                        var _iteratorNormalCompletion24 = true;
+                        var _didIteratorError24 = false;
+                        var _iteratorError24 = undefined;
 
                         try {
-                            for (var _iterator22 = seats_picked[Symbol.iterator](), _step22; !(_iteratorNormalCompletion22 = (_step22 = _iterator22.next()).done); _iteratorNormalCompletion22 = true) {
-                                var s2 = _step22.value;
+                            for (var _iterator24 = seats_picked[Symbol.iterator](), _step24; !(_iteratorNormalCompletion24 = (_step24 = _iterator24.next()).done); _iteratorNormalCompletion24 = true) {
+                                var s2 = _step24.value;
 
                                 if (s.floor === s2.floor && s.col === s2.col && s.num === s2.num) {
                                     temp = false;
@@ -47257,16 +47322,16 @@ var Main = function (_React$Component) {
                                 }
                             }
                         } catch (err) {
-                            _didIteratorError22 = true;
-                            _iteratorError22 = err;
+                            _didIteratorError24 = true;
+                            _iteratorError24 = err;
                         } finally {
                             try {
-                                if (!_iteratorNormalCompletion22 && _iterator22.return) {
-                                    _iterator22.return();
+                                if (!_iteratorNormalCompletion24 && _iterator24.return) {
+                                    _iterator24.return();
                                 }
                             } finally {
-                                if (_didIteratorError22) {
-                                    throw _iteratorError22;
+                                if (_didIteratorError24) {
+                                    throw _iteratorError24;
                                 }
                             }
                         }
@@ -47274,41 +47339,41 @@ var Main = function (_React$Component) {
                         if (temp === true) seats_cleaned.push(s);
                     }
                 } catch (err) {
-                    _didIteratorError20 = true;
-                    _iteratorError20 = err;
+                    _didIteratorError22 = true;
+                    _iteratorError22 = err;
                 } finally {
                     try {
-                        if (!_iteratorNormalCompletion20 && _iterator20.return) {
-                            _iterator20.return();
+                        if (!_iteratorNormalCompletion22 && _iterator22.return) {
+                            _iterator22.return();
                         }
                     } finally {
-                        if (_didIteratorError20) {
-                            throw _iteratorError20;
+                        if (_didIteratorError22) {
+                            throw _iteratorError22;
                         }
                     }
                 }
 
-                var _iteratorNormalCompletion21 = true;
-                var _didIteratorError21 = false;
-                var _iteratorError21 = undefined;
+                var _iteratorNormalCompletion23 = true;
+                var _didIteratorError23 = false;
+                var _iteratorError23 = undefined;
 
                 try {
-                    for (var _iterator21 = seats_cleaned[Symbol.iterator](), _step21; !(_iteratorNormalCompletion21 = (_step21 = _iterator21.next()).done); _iteratorNormalCompletion21 = true) {
-                        var i = _step21.value;
+                    for (var _iterator23 = seats_cleaned[Symbol.iterator](), _step23; !(_iteratorNormalCompletion23 = (_step23 = _iterator23.next()).done); _iteratorNormalCompletion23 = true) {
+                        var i = _step23.value;
 
                         seats_picked.push(i);
                     }
                 } catch (err) {
-                    _didIteratorError21 = true;
-                    _iteratorError21 = err;
+                    _didIteratorError23 = true;
+                    _iteratorError23 = err;
                 } finally {
                     try {
-                        if (!_iteratorNormalCompletion21 && _iterator21.return) {
-                            _iterator21.return();
+                        if (!_iteratorNormalCompletion23 && _iterator23.return) {
+                            _iterator23.return();
                         }
                     } finally {
-                        if (_didIteratorError21) {
-                            throw _iteratorError21;
+                        if (_didIteratorError23) {
+                            throw _iteratorError23;
                         }
                     }
                 }
@@ -47344,27 +47409,27 @@ var Main = function (_React$Component) {
                 //옮겨야해
                 var numOfVIP = 0;
                 var numOfR = 0;
-                var _iteratorNormalCompletion23 = true;
-                var _didIteratorError23 = false;
-                var _iteratorError23 = undefined;
+                var _iteratorNormalCompletion25 = true;
+                var _didIteratorError25 = false;
+                var _iteratorError25 = undefined;
 
                 try {
-                    for (var _iterator23 = this.state.seats_picked[Symbol.iterator](), _step23; !(_iteratorNormalCompletion23 = (_step23 = _iterator23.next()).done); _iteratorNormalCompletion23 = true) {
-                        var _s = _step23.value;
+                    for (var _iterator25 = this.state.seats_picked[Symbol.iterator](), _step25; !(_iteratorNormalCompletion25 = (_step25 = _iterator25.next()).done); _iteratorNormalCompletion25 = true) {
+                        var _s = _step25.value;
 
                         if (_s.seat_class === "VIP") numOfVIP++;else if (_s.seat_class === "R") numOfR++;
                     }
                 } catch (err) {
-                    _didIteratorError23 = true;
-                    _iteratorError23 = err;
+                    _didIteratorError25 = true;
+                    _iteratorError25 = err;
                 } finally {
                     try {
-                        if (!_iteratorNormalCompletion23 && _iterator23.return) {
-                            _iterator23.return();
+                        if (!_iteratorNormalCompletion25 && _iterator25.return) {
+                            _iterator25.return();
                         }
                     } finally {
-                        if (_didIteratorError23) {
-                            throw _iteratorError23;
+                        if (_didIteratorError25) {
+                            throw _iteratorError25;
                         }
                     }
                 }
@@ -47372,29 +47437,29 @@ var Main = function (_React$Component) {
                 if (this.state.customers_picked && this.state.customers_picked.length) {
                     var numOfVIP_customers = 0;
                     var numOfR_customers = 0;
-                    var _iteratorNormalCompletion24 = true;
-                    var _didIteratorError24 = false;
-                    var _iteratorError24 = undefined;
+                    var _iteratorNormalCompletion26 = true;
+                    var _didIteratorError26 = false;
+                    var _iteratorError26 = undefined;
 
                     try {
-                        for (var _iterator24 = this.state.customers_picked[Symbol.iterator](), _step24; !(_iteratorNormalCompletion24 = (_step24 = _iterator24.next()).done); _iteratorNormalCompletion24 = true) {
-                            var s = _step24.value;
+                        for (var _iterator26 = this.state.customers_picked[Symbol.iterator](), _step26; !(_iteratorNormalCompletion26 = (_step26 = _iterator26.next()).done); _iteratorNormalCompletion26 = true) {
+                            var s = _step26.value;
 
                             if (!s.seat_position) {
                                 if (s.seat_class === "VIP") numOfVIP_customers++;else if (s.seat_class === "R") numOfR_customers++;
                             }
                         }
                     } catch (err) {
-                        _didIteratorError24 = true;
-                        _iteratorError24 = err;
+                        _didIteratorError26 = true;
+                        _iteratorError26 = err;
                     } finally {
                         try {
-                            if (!_iteratorNormalCompletion24 && _iterator24.return) {
-                                _iterator24.return();
+                            if (!_iteratorNormalCompletion26 && _iterator26.return) {
+                                _iterator26.return();
                             }
                         } finally {
-                            if (_didIteratorError24) {
-                                throw _iteratorError24;
+                            if (_didIteratorError26) {
+                                throw _iteratorError26;
                             }
                         }
                     }
@@ -47422,13 +47487,13 @@ var Main = function (_React$Component) {
         key: 'ticketExcel',
         value: function ticketExcel(source, price) {
             var data = [];
-            var _iteratorNormalCompletion25 = true;
-            var _didIteratorError25 = false;
-            var _iteratorError25 = undefined;
+            var _iteratorNormalCompletion27 = true;
+            var _didIteratorError27 = false;
+            var _iteratorError27 = undefined;
 
             try {
-                for (var _iterator25 = this.state.seats_picked[Symbol.iterator](), _step25; !(_iteratorNormalCompletion25 = (_step25 = _iterator25.next()).done); _iteratorNormalCompletion25 = true) {
-                    var p = _step25.value;
+                for (var _iterator27 = this.state.seats_picked[Symbol.iterator](), _step27; !(_iteratorNormalCompletion27 = (_step27 = _iterator27.next()).done); _iteratorNormalCompletion27 = true) {
+                    var p = _step27.value;
 
                     var reservation = {
                         source: source,
@@ -47444,16 +47509,16 @@ var Main = function (_React$Component) {
                     data.push(reservation);
                 }
             } catch (err) {
-                _didIteratorError25 = true;
-                _iteratorError25 = err;
+                _didIteratorError27 = true;
+                _iteratorError27 = err;
             } finally {
                 try {
-                    if (!_iteratorNormalCompletion25 && _iterator25.return) {
-                        _iterator25.return();
+                    if (!_iteratorNormalCompletion27 && _iterator27.return) {
+                        _iterator27.return();
                     }
                 } finally {
-                    if (_didIteratorError25) {
-                        throw _iteratorError25;
+                    if (_didIteratorError27) {
+                        throw _iteratorError27;
                     }
                 }
             }
@@ -47520,27 +47585,27 @@ var Main = function (_React$Component) {
                 combine = true;
                 var firstSeatClass = this.state.seats_picked[0].seat_class;
                 var firstSeatPrice = this.state.seats_picked[0].price;
-                var _iteratorNormalCompletion26 = true;
-                var _didIteratorError26 = false;
-                var _iteratorError26 = undefined;
+                var _iteratorNormalCompletion28 = true;
+                var _didIteratorError28 = false;
+                var _iteratorError28 = undefined;
 
                 try {
-                    for (var _iterator26 = this.state.seats_picked[Symbol.iterator](), _step26; !(_iteratorNormalCompletion26 = (_step26 = _iterator26.next()).done); _iteratorNormalCompletion26 = true) {
-                        var seat = _step26.value;
+                    for (var _iterator28 = this.state.seats_picked[Symbol.iterator](), _step28; !(_iteratorNormalCompletion28 = (_step28 = _iterator28.next()).done); _iteratorNormalCompletion28 = true) {
+                        var seat = _step28.value;
 
                         if (seat.seat_class !== firstSeatClass || seat.price !== firstSeatPrice) combine = false;
                     }
                 } catch (err) {
-                    _didIteratorError26 = true;
-                    _iteratorError26 = err;
+                    _didIteratorError28 = true;
+                    _iteratorError28 = err;
                 } finally {
                     try {
-                        if (!_iteratorNormalCompletion26 && _iterator26.return) {
-                            _iterator26.return();
+                        if (!_iteratorNormalCompletion28 && _iterator28.return) {
+                            _iterator28.return();
                         }
                     } finally {
-                        if (_didIteratorError26) {
-                            throw _iteratorError26;
+                        if (_didIteratorError28) {
+                            throw _iteratorError28;
                         }
                     }
                 }

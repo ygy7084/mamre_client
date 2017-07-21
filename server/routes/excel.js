@@ -201,21 +201,21 @@ router.post('/parse/reservation', upload.single('file'), (req, res) => {
         try {
             //파싱 진행
             for (let i in excel.parsing_rule) {
-                if (excel.parsing_rule[i] && excel.parsing_rule[i].field && (excel.parsing_rule[i].c||excel.parsing_rule[i].c===0)) {
 
+                if (excel.parsing_rule.hasOwnProperty(i) && excel.parsing_rule[i] && excel.parsing_rule[i].field && (excel.parsing_rule[i].c||excel.parsing_rule[i].c===0)) {
+                    console.log(i);
                     for (let row = field_row + 1; row <= Excel_sheet_range.e.r; row++) {
                         //셀의 내용 접근
                         let cell_address = XLSX.utils.encode_cell({c: excel.parsing_rule[i].c, r: row});
 
                         //v는 셀의 내용의 raw 데이터
                         let cell_data = Excel_sheet[cell_address].v;
-
                         //정규식을 이용한 파싱 직전에 셀의 내용에서 공백과 빈칸을 전부 없앤다.
                         if (typeof cell_data === 'string')
                             cell_data = cell_data.replace(/\s/gi, "");
-
                         //정규식을 이용한 파싱 (정규식 코드 없으면 셀 내용 변경 안함)
-                        if (excel.parsing_rule[i].code) {
+                        if (excel.parsing_rule[i] && excel.parsing_rule[i].code) {
+                            // console.log(i +' - '+Excel_sheet[cell_address]);
                             cell_data = excel.parsing_rule[i].code(cell_data);
                         }
                         parsed_rows[row][i] = cell_data;
@@ -241,7 +241,6 @@ router.post('/parse/reservation', upload.single('file'), (req, res) => {
                 o['seat_class'] &&
                 o['ticket_code'] &&
                 o['ticket_price'])) {
-                console.log(o);
                 return res.status(400).json({message: 'Excel Upload Error - ' + '필수적인 파싱 내용 빠짐'});
             }
             //공연 연도 미입력 시 현재 연도 입력.

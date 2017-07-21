@@ -53,7 +53,6 @@ router.get('/pre/showtime/:showtime/date/:date', (req, res) => {
                 });
 
 
-
                 //difference 연산
                 let printed_seats = theater_seats.filter((ts) => {
                     return preTicketted_seats.filter((cs) => {
@@ -128,11 +127,12 @@ router.get('/showtime/:showtime/date/:date', (req, res) => {
                     //difference 연산
                     let reserved_seats;
                     let not_reserved_seats;
-                    reserved_seats = theater_seats.filter((ts) => {
-                        return crawled_seats.filter((cs) => {
-                                return ts.col===cs.col && ts.floor === cs.floor && ts.num === cs.num
-                            }).length===0;
-                    });
+                    reserved_seats = [];
+                    // reserved_seats = theater_seats.filter((ts) => {
+                    //     return crawled_seats.filter((cs) => {
+                    //             return ts.col===cs.col && ts.floor === cs.floor && ts.num === cs.num
+                    //         }).length===0;
+                    // });
                     for(let es of excel_seats) {
                         if(!reserved_seats.find((rs) => {
                             return es.col===rs.col && es.floor===rs.floor && es.num===rs.num;

@@ -102,6 +102,7 @@ class Right extends React.Component {
                                         <th style={style.customersTable.header_th}>이름</th>
                                         <th style={style.customersTable.header_th}>좌석등급</th>
                                         <th style={style.customersTable.header_th}>좌석번호</th>
+                                        <th style={style.customersTable.header_th}>고유번호</th>
                                     </tr>
                                 </thead>
                                 <tbody style={style.customersTable.tbody}>
@@ -116,6 +117,8 @@ class Right extends React.Component {
                                                 <td style={style.customersTable.body_td}>{customer.seat_position ?
                                                     customer.seat_position.col+'열 '+
                                                     customer.seat_position.num+'번' : '미배정'}</td>
+                                                <td style={style.customersTable.body_td}>{customer.serialNum ?
+                                                    customer.serialNum: '미배정'}</td>
                                             </tr>
                                         )
                                     })
@@ -303,14 +306,14 @@ const style = {
             textAlign:'center',
             fontWeight:'normal',
             padding:'3px',
-            width:'120px'
+            width:'96px'
         },
         body:{
             background:'rgb(245,245,245)',
             borderTop:'1px solid #ddd'
         },
         body_td:{
-            width:'120px',
+            width:'96px',
             padding:'3px',
         }
     },
