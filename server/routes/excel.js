@@ -587,14 +587,15 @@ router.get('/showtime/:showtime/date/:date', (req, res) => {
                             )
                                 return true;
                         });
-                        if(obj) {
-                            obj.source = '인터파크';
-                            obj.customer_name = '미확인';
-                            obj.customer_phone = '미확인';
-                        }
-                        else {
-                            console.log(c);
-                        }
+                        /*
+                        엑셀에 크롤링 기본 입력
+                         */
+                        // if(obj) {
+                        //     obj.source = '인터파크';
+                        //     obj.customer_name = '미확인';
+                        //     obj.customer_phone = '미확인';
+                        // }
+
                     }
 
                     Reservation.populate(schedule.reservations, {path: '_id'}, (err, results) => {

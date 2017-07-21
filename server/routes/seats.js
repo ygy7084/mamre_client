@@ -127,7 +127,12 @@ router.get('/showtime/:showtime/date/:date', (req, res) => {
                     //difference 연산
                     let reserved_seats;
                     let not_reserved_seats;
+                    
+                    
                     reserved_seats = [];
+                    /*
+                    인터파크 크롤링 예약데이터로 전환안함
+                     */
                     // reserved_seats = theater_seats.filter((ts) => {
                     //     return crawled_seats.filter((cs) => {
                     //             return ts.col===cs.col && ts.floor === cs.floor && ts.num === cs.num
