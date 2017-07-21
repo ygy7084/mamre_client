@@ -23,7 +23,7 @@ let configuration = {
         if(config[config_key[i]])
             configuration[config_key[i]] = config[config_key[i]];
     }
-    configuration.PORT = process.env.PORT || 8082;
+    configuration.PORT = process.env.PORT || 8080;
 }());
 
 export default configuration;
