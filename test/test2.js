@@ -1,13 +1,17 @@
-function aa(cell_value) {
-    let regex;
-    let return_value;
-    regex = new RegExp(/\^([가-힇]+)([0-9]+)시/);
-    let t = regex.exec(cell_value);
-    if(t===null) return 0;
-    else return t
+let arr = [['인터파크' , 123],['쿠팡' , 13],['인터파크' , 123],['김치' , 123],['감자' , 123],['인터파크' , 123],['굿' , 123]];
 
-}
-let cell_data = '[날짜를선택하세요^공연시간^좌석등급:2017-07-22^오후4시30분^02.R석:1개]'
-if (typeof cell_data === 'string')
-    cell_data = cell_data.replace(/\s/gi, "");
- console.log(aa(cell_data))
+
+arr.sort((a,b,c) => {
+    if(a[0]==='인터파크')
+        return false;
+    else
+        return true;
+})
+arr.
+
+console.log(arr);
+
+let t1 = [1,2,3];
+let t2 = [3,3,4]
+console.log(t1.concat(t2))
+t1

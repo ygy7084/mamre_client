@@ -8,7 +8,7 @@ import {
     ExcelModal
 } from '../components'
 
-class SettingTheater extends React.Component {
+class SettingShowtime extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
@@ -419,4 +419,4 @@ class SettingTheater extends React.Component {
     }
 }
 
-export default SettingTheater;
+export default SettingShowtime;

@@ -151,6 +151,26 @@ class API_test_Excel_Reservation extends React.Component {
                     message = err.message;
                 console.log(message);
             });
+        fetch('/api/excel/read',{
+            method : 'GET'
+        })
+            .then(res =>{
+                if(res.ok)
+                    return res.json();
+                else
+                    return res.json().then(err => { throw err; })})
+            .then(res => {
+                console.log(res.data);
+                this.setState({
+                    excel:res.data
+                });
+            })
+            .catch((err) => {
+                let message = err;
+                if(err.message && err.message!=='')
+                    message = err.message;
+                console.log(message);
+            });
     }
     saveExcel() {
         let data = [];

@@ -699,6 +699,79 @@ router.delete('/delete/all', (req, res) => {
     });
 });
 
+router.delete('/delete/source2', (req, res) => {
+    const data = req.body.data;
+
+    Reservation.find({
+        theater:data.theater,
+        show:data.show,
+        source:data.source,
+        show_date:data.show_date}).exec((err, results) => {
+
+        let bulk = [];
+        let ids = [];
+        for (let i of results) {
+            bulk.push({
+                updateOne: {
+                    filter: {
+                        show: i.show, theater: i.theater,'schedule.reservations._id':i._id
+                    },
+                    update: {$pull: {"schedule.$.reservations": {_id: i._id}}}
+                }
+            });
+            ids.push(i._id);
+        }
+        if(bulk.length) {
+            Showtime.bulkWrite(bulk).then((results) => {
+                Reservation.remove({'_id': {'$in': ids}}, (err, results) => {
+                    return res.json({
+                        data: results
+                    })
+                });
+            });
+        }else
+            return res.json({
+                data: {}
+            })
+    });
+});
+
+router.delete('/delete/all2', (req, res) => {
+    const data = req.body.data;
+
+    Reservation.find({
+        theater:data.theater,
+        show:data.show,
+        show_date:data.show_date}).exec((err, results) => {
+
+        let bulk = [];
+        let ids = [];
+        for (let i of results) {
+            bulk.push({
+                updateOne: {
+                    filter: {
+                        show: i.show, theater: i.theater,'schedule.reservations._id':i._id
+                    },
+                    update: {$pull: {"schedule.$.reservations": {_id: i._id}}}
+                }
+            });
+            ids.push(i._id);
+        }
+        if(bulk.length) {
+            Showtime.bulkWrite(bulk).then((results) => {
+                Reservation.remove({'_id': {'$in': ids}}, (err, results) => {
+                    return res.json({
+                        data: results
+                    })
+                });
+            });
+        }else
+            return res.json({
+                data: {}
+            })
+    });
+});
+
 //예매 내역을 조회한다.
 router.get('/read/theater/:theater/show/:show/date/:date', (req, res) => {
     const query = {

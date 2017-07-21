@@ -203,7 +203,6 @@ router.post('/parse/reservation', upload.single('file'), (req, res) => {
             for (let i in excel.parsing_rule) {
 
                 if (excel.parsing_rule.hasOwnProperty(i) && excel.parsing_rule[i] && excel.parsing_rule[i].field && (excel.parsing_rule[i].c||excel.parsing_rule[i].c===0)) {
-                    console.log(i);
                     for (let row = field_row + 1; row <= Excel_sheet_range.e.r; row++) {
                         //셀의 내용 접근
                         let cell_address = XLSX.utils.encode_cell({c: excel.parsing_rule[i].c, r: row});
@@ -624,16 +623,18 @@ router.get('/showtime/:showtime/date/:date', (req, res) => {
                                     obj.discount = reservation.discount
                                 }
                                 else {
-                                    console.log(reservation.seat_position);
+                                    // console.log(reservation.seat_position);
                                 }
                             }
                         });
 
                         const wb = XLSX.utils.book_new();
                         const ws_name = "reservations";
-                        const ws_data = [
+                        let ws_data = [
                             [ "일련번호", "공연일시", "발권인원", "좌석등급", "판매가", "좌석번호", "구매처", "단체명", "구매자성명", "전화번호", "할인내역"],
                         ];
+
+                        let ws_body = [];
 
                         for(let r of Arr) {
                             for(let prop in r)
@@ -641,7 +642,7 @@ router.get('/showtime/:showtime/date/:date', (req, res) => {
 
                             const date = new datetime(r.show_date);
 
-                            ws_data.push([
+                            ws_body.push([
                                 String(r.num),
                                 date.datetimeString,
                                 String(r.ticket_quantity),
@@ -656,7 +657,57 @@ router.get('/showtime/:showtime/date/:date', (req, res) => {
                             ]);
                         }
 
-                        const ws = XLSX.utils.aoa_to_sheet(ws_data);
+                        // ws_body.sort((a) =>{
+                        //     if(a[6]==='인터파크')return false;
+                        //     else return true;
+                        //     }
+                        // );
+
+                        /*
+
+
+        //필드 row에서 필드명에 따른 column의 위치를 저장
+        for(let c = Excel_sheet_range.s.c;c<=Excel_sheet_range.e.c;c++) {
+
+            let cell_address = XLSX.utils.encode_cell({c: c, r: field_row});
+
+            for(let i in excel.parsing_rule) {
+                if(excel.parsing_rule.hasOwnProperty(i))
+                {
+
+                    if (excel.parsing_rule[i] && excel.parsing_rule[i].field === Excel_sheet[cell_address].v) {
+
+                        excel.parsing_rule[i].c = c;
+                    }else {
+
+                    }
+                }
+
+
+                         */
+
+
+                        const result = [];
+
+                        const temp = [];
+                        const rowLen = ws_data.length;
+                        let n =0;
+                        for(let i=0;i<ws_body.length;i++) {
+                            if(ws_body[i][6] === '인터파크') {
+                                ws_body[i][0] = ++n;
+                                result.push(ws_body[i]);
+                            }
+                            else {
+
+                                temp.push(ws_body[i]);
+                            }
+
+                        }
+                        for(let i=0;i<temp.length;i++) {
+                            temp[i][0] = ++n;
+                        }
+
+                        const ws = XLSX.utils.aoa_to_sheet(ws_data.concat(result.concat(temp)));
 
                         wb.SheetNames.push(ws_name);
 
