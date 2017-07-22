@@ -1,6 +1,6 @@
 import express from 'express';
 import multer from 'multer';
-import {Excel, Showtime, Reservation} from '../models';
+import {Excel, Showtime, Reservation, SeatsSerial} from '../models';
 import XLSX from 'xlsx';
 import moment from 'moment-timezone';
 import tmp from 'tmp';
@@ -635,79 +635,74 @@ router.get('/showtime/:showtime/date/:date', (req, res) => {
                         ];
 
                         let ws_body = [];
+                        let ws_body2 = [];
 
                         for(let r of Arr) {
-                            for(let prop in r)
+                            for (let prop in r)
                                 r[prop] = r[prop] ? r[prop] : '';
 
                             const date = new datetime(r.show_date);
 
                             ws_body.push([
-                                String(r.num),
+                                0,
                                 date.datetimeString,
                                 String(r.ticket_quantity),
                                 String(r.seat_class),
                                 String(r.ticket_price),
-                                r.seat_position.col+'열 '+r.seat_position.num+'번',
+                                r.seat_position.col + '열 ' + r.seat_position.num + '번',
                                 r.source,
                                 r.group_name,
                                 r.customer_name,
                                 String(r.customer_phone),
                                 r.discount
                             ]);
+                            ws_body2.push({
+                                serialNum : null,
+                                col : r.seat_position.col,
+                                num : r.seat_position.num
+                            });
                         }
 
-                        // ws_body.sort((a) =>{
-                        //     if(a[6]==='인터파크')return false;
-                        //     else return true;
-                        //     }
-                        // );
-
-                        /*
-
-
-        //필드 row에서 필드명에 따른 column의 위치를 저장
-        for(let c = Excel_sheet_range.s.c;c<=Excel_sheet_range.e.c;c++) {
-
-            let cell_address = XLSX.utils.encode_cell({c: c, r: field_row});
-
-            for(let i in excel.parsing_rule) {
-                if(excel.parsing_rule.hasOwnProperty(i))
-                {
-
-                    if (excel.parsing_rule[i] && excel.parsing_rule[i].field === Excel_sheet[cell_address].v) {
-
-                        excel.parsing_rule[i].c = c;
-                    }else {
-
-                    }
-                }
-
-
-                         */
-
+                        const infoForSeatsSerial = [];
+                        const temp_infoForSeatsSerial = [];
 
                         const result = [];
-
                         const temp = [];
-                        const rowLen = ws_data.length;
+
                         let n =0;
                         for(let i=0;i<ws_body.length;i++) {
                             if(ws_body[i][6] === '인터파크') {
                                 ws_body[i][0] = ++n;
                                 result.push(ws_body[i]);
+
+                                ws_body2[i].serialNum = n;
+                                infoForSeatsSerial.push(ws_body2[i]);
                             }
                             else {
-
                                 temp.push(ws_body[i]);
+                                temp_infoForSeatsSerial.push(ws_body2[i]);
                             }
-
                         }
+
                         for(let i=0;i<temp.length;i++) {
                             temp[i][0] = ++n;
+                            temp_infoForSeatsSerial[i].serialNum = n;
                         }
 
-                        const ws = XLSX.utils.aoa_to_sheet(ws_data.concat(result.concat(temp)));
+                        let result_seat = result.concat(temp);
+
+                        let result_infoForSeatsSerial = infoForSeatsSerial.concat(temp_infoForSeatsSerial);
+                        let date = Arr[0].show_date;
+                        SeatsSerial.update({
+                            date : date
+                        },
+                            {$set:{seats : result_infoForSeatsSerial}},
+                            {upsert:true}
+                        ).exec((err, results) => {
+                            console.log(results);
+                        });
+
+                        const ws = XLSX.utils.aoa_to_sheet(ws_data.concat(result_seat));
 
                         wb.SheetNames.push(ws_name);
 

@@ -1125,20 +1125,44 @@ class Main extends React.Component {
                     else
                         seats = res.data.not_reserved_seats;
 
-                    console.log(res.data);
+                    fetch('/api/seatsSerial/'+time, {method:'GET'})
+                        .then(res => {
+                            if(res.ok)
+                                return res.json();
+                            else
+                                return res.json().then(err => { throw err; })})
 
-                    this.setState({
-                        loaded:true,
-                        time_picked:time,
-                        seats:seats,
-                        reserved_seats : res.data.reserved_seats,
-                        seats_picked:[],
-                        price_picked: null,
-                        customers: [],
-                        customers_picked: [],
-                        LoaderModal_on:false
-                    });
-                })
+                        .then(res => {
+                            console.log(res.data[0]);
+
+
+                            if(res.data && res.data.length) {
+                                const serialSeats = res.data[0].seats;
+
+                                for(let serial of serialSeats) {
+
+                                        for (let i of seats) {
+                                            if (i.col === serial.col && i.num === serial.num) {
+                                                i.serialNum = serial.serialNum;
+                                            }
+                                        }
+                                    }
+
+                                }
+
+                            this.setState({
+                                loaded:true,
+                                time_picked:time,
+                                seats:seats,
+                                reserved_seats : res.data.reserved_seats,
+                                seats_picked:[],
+                                price_picked: null,
+                                customers: [],
+                                customers_picked: [],
+                                LoaderModal_on:false
+                            });
+                            })
+                    })
                 .catch((err) => {
                     let message = err;
                     if(err.message && err.message!=='')

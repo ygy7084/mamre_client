@@ -6,6 +6,7 @@ import showtime from './showtime';
 import theater from './theater';
 import seats from './seats';
 import ticket from './ticket';
+import seatsSerial from './seatsSerial';
 
 
 const router = express.Router();
@@ -17,5 +18,6 @@ router.use('/showtime', showtime);
 router.use('/theater', theater);
 router.use('/seats', seats);
 router.use('/ticket', ticket);
+router.use('/seatsSerial', seatsSerial);
 
 export default router;
