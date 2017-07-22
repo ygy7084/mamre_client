@@ -47049,10 +47049,72 @@ var Main = function (_React$Component) {
                             }
                         }
                     }
-                }_this10.setState({
-                    customers: customers,
-                    LoaderModal_on: false,
-                    CustomerFindingModal_on: true });
+                }fetch('/api/seatsSerial/' + _this10.state.time_picked, { method: 'GET' }).then(function (res) {
+                    if (res.ok) return res.json();else return res.json().then(function (err) {
+                        throw err;
+                    });
+                }).then(function (res) {
+
+                    if (res.data && res.data[0] && res.data.length) {
+                        var serialSeats = res.data[0].seats;
+
+                        var _iteratorNormalCompletion19 = true;
+                        var _didIteratorError19 = false;
+                        var _iteratorError19 = undefined;
+
+                        try {
+                            for (var _iterator19 = serialSeats[Symbol.iterator](), _step19; !(_iteratorNormalCompletion19 = (_step19 = _iterator19.next()).done); _iteratorNormalCompletion19 = true) {
+                                var serial = _step19.value;
+                                var _iteratorNormalCompletion20 = true;
+                                var _didIteratorError20 = false;
+                                var _iteratorError20 = undefined;
+
+                                try {
+
+                                    for (var _iterator20 = customers[Symbol.iterator](), _step20; !(_iteratorNormalCompletion20 = (_step20 = _iterator20.next()).done); _iteratorNormalCompletion20 = true) {
+                                        var i = _step20.value;
+
+                                        if (i.seat_position.col === serial.col && i.seat_position.num === serial.num) {
+                                            i.serialNum = serial.serialNum;
+                                        }
+                                    }
+                                } catch (err) {
+                                    _didIteratorError20 = true;
+                                    _iteratorError20 = err;
+                                } finally {
+                                    try {
+                                        if (!_iteratorNormalCompletion20 && _iterator20.return) {
+                                            _iterator20.return();
+                                        }
+                                    } finally {
+                                        if (_didIteratorError20) {
+                                            throw _iteratorError20;
+                                        }
+                                    }
+                                }
+                            }
+                        } catch (err) {
+                            _didIteratorError19 = true;
+                            _iteratorError19 = err;
+                        } finally {
+                            try {
+                                if (!_iteratorNormalCompletion19 && _iterator19.return) {
+                                    _iterator19.return();
+                                }
+                            } finally {
+                                if (_didIteratorError19) {
+                                    throw _iteratorError19;
+                                }
+                            }
+                        }
+                    }
+
+                    _this10.setState({
+                        customers: customers,
+                        LoaderModal_on: false,
+                        CustomerFindingModal_on: true
+                    });
+                });
             }).catch(function (err) {
                 var message = err;
                 if (err.message && err.message !== '') message = err.message;
@@ -47100,27 +47162,27 @@ var Main = function (_React$Component) {
         key: 'changePriceAll',
         value: function changePriceAll(ratio) {
             var seats_picked = JSON.parse(JSON.stringify(this.state.seats_picked));
-            var _iteratorNormalCompletion19 = true;
-            var _didIteratorError19 = false;
-            var _iteratorError19 = undefined;
+            var _iteratorNormalCompletion21 = true;
+            var _didIteratorError21 = false;
+            var _iteratorError21 = undefined;
 
             try {
-                for (var _iterator19 = seats_picked[Symbol.iterator](), _step19; !(_iteratorNormalCompletion19 = (_step19 = _iterator19.next()).done); _iteratorNormalCompletion19 = true) {
-                    var seat = _step19.value;
+                for (var _iterator21 = seats_picked[Symbol.iterator](), _step21; !(_iteratorNormalCompletion21 = (_step21 = _iterator21.next()).done); _iteratorNormalCompletion21 = true) {
+                    var seat = _step21.value;
 
                     if (seat.seat_class === 'VIP') seat.price = 50000 * ratio;else if (seat.seat_class === 'R') seat.price = 40000 * ratio;
                 }
             } catch (err) {
-                _didIteratorError19 = true;
-                _iteratorError19 = err;
+                _didIteratorError21 = true;
+                _iteratorError21 = err;
             } finally {
                 try {
-                    if (!_iteratorNormalCompletion19 && _iterator19.return) {
-                        _iterator19.return();
+                    if (!_iteratorNormalCompletion21 && _iterator21.return) {
+                        _iterator21.return();
                     }
                 } finally {
-                    if (_didIteratorError19) {
-                        throw _iteratorError19;
+                    if (_didIteratorError21) {
+                        throw _iteratorError21;
                     }
                 }
             }
@@ -47164,13 +47226,13 @@ var Main = function (_React$Component) {
             // 선택한 날짜에 이뤄지는 공연의 스케쥴을 불러온다.
             // times에는 시간 정보 뿐 아니라 날짜 정보도 있는 Date 객체를 저장한다.
             var times = [];
-            var _iteratorNormalCompletion20 = true;
-            var _didIteratorError20 = false;
-            var _iteratorError20 = undefined;
+            var _iteratorNormalCompletion22 = true;
+            var _didIteratorError22 = false;
+            var _iteratorError22 = undefined;
 
             try {
-                for (var _iterator20 = schedules[Symbol.iterator](), _step20; !(_iteratorNormalCompletion20 = (_step20 = _iterator20.next()).done); _iteratorNormalCompletion20 = true) {
-                    var s = _step20.value;
+                for (var _iterator22 = schedules[Symbol.iterator](), _step22; !(_iteratorNormalCompletion22 = (_step22 = _iterator22.next()).done); _iteratorNormalCompletion22 = true) {
+                    var s = _step22.value;
 
                     var schedule_date = new Date(s.date);
                     if (schedule_date.toLocaleDateString() === date.toLocaleDateString()) times.push(schedule_date);
@@ -47178,16 +47240,16 @@ var Main = function (_React$Component) {
 
                 // 공연 시간 로드 및 좌석, 구매자 정보 초기화
             } catch (err) {
-                _didIteratorError20 = true;
-                _iteratorError20 = err;
+                _didIteratorError22 = true;
+                _iteratorError22 = err;
             } finally {
                 try {
-                    if (!_iteratorNormalCompletion20 && _iterator20.return) {
-                        _iterator20.return();
+                    if (!_iteratorNormalCompletion22 && _iterator22.return) {
+                        _iterator22.return();
                     }
                 } finally {
-                    if (_didIteratorError20) {
-                        throw _iteratorError20;
+                    if (_didIteratorError22) {
+                        throw _iteratorError22;
                     }
                 }
             }
@@ -47261,33 +47323,35 @@ var Main = function (_React$Component) {
                 /*
                 가격 정보를 저장한다.
                  */
-                var _iteratorNormalCompletion21 = true;
-                var _didIteratorError21 = false;
-                var _iteratorError21 = undefined;
+                var _iteratorNormalCompletion23 = true;
+                var _didIteratorError23 = false;
+                var _iteratorError23 = undefined;
 
                 try {
-                    for (var _iterator21 = res.data.not_reserved_seats[Symbol.iterator](), _step21; !(_iteratorNormalCompletion21 = (_step21 = _iterator21.next()).done); _iteratorNormalCompletion21 = true) {
-                        var seat = _step21.value;
+                    for (var _iterator23 = res.data.not_reserved_seats[Symbol.iterator](), _step23; !(_iteratorNormalCompletion23 = (_step23 = _iterator23.next()).done); _iteratorNormalCompletion23 = true) {
+                        var seat = _step23.value;
 
                         if (seat.seat_class === 'VIP') seat.price = 50000;else if (seat.seat_class === 'R') seat.price = 40000;else throw new Error('좌석 등급을 식별할 수 없습니다. - ' + seat.seat_class);
                     }
                 } catch (err) {
-                    _didIteratorError21 = true;
-                    _iteratorError21 = err;
+                    _didIteratorError23 = true;
+                    _iteratorError23 = err;
                 } finally {
                     try {
-                        if (!_iteratorNormalCompletion21 && _iterator21.return) {
-                            _iterator21.return();
+                        if (!_iteratorNormalCompletion23 && _iterator23.return) {
+                            _iterator23.return();
                         }
                     } finally {
-                        if (_didIteratorError21) {
-                            throw _iteratorError21;
+                        if (_didIteratorError23) {
+                            throw _iteratorError23;
                         }
                     }
                 }
 
                 var seats = void 0;
                 if (_this12.state.reTickettingStart) seats = res.data.reserved_seats;else seats = res.data.not_reserved_seats;
+
+                var reserved_seats = res.data.reserved_seats;
 
                 fetch('/api/seatsSerial/' + time, { method: 'GET' }).then(function (res) {
                     if (res.ok) return res.json();else return res.json().then(function (err) {
@@ -47296,65 +47360,120 @@ var Main = function (_React$Component) {
                 }).then(function (res) {
                     console.log(res.data[0]);
 
-                    if (res.data && res.data.length) {
-                        var serialSeats = res.data[0].seats;
+                    if (res.data && res.data[0]) {
+                        if (res.data && res.data.length) {
+                            var serialSeats = res.data[0].seats;
 
-                        var _iteratorNormalCompletion22 = true;
-                        var _didIteratorError22 = false;
-                        var _iteratorError22 = undefined;
+                            var _iteratorNormalCompletion24 = true;
+                            var _didIteratorError24 = false;
+                            var _iteratorError24 = undefined;
 
-                        try {
-                            for (var _iterator22 = serialSeats[Symbol.iterator](), _step22; !(_iteratorNormalCompletion22 = (_step22 = _iterator22.next()).done); _iteratorNormalCompletion22 = true) {
-                                var serial = _step22.value;
-                                var _iteratorNormalCompletion23 = true;
-                                var _didIteratorError23 = false;
-                                var _iteratorError23 = undefined;
+                            try {
+                                for (var _iterator24 = serialSeats[Symbol.iterator](), _step24; !(_iteratorNormalCompletion24 = (_step24 = _iterator24.next()).done); _iteratorNormalCompletion24 = true) {
+                                    var serial = _step24.value;
+                                    var _iteratorNormalCompletion25 = true;
+                                    var _didIteratorError25 = false;
+                                    var _iteratorError25 = undefined;
 
-                                try {
+                                    try {
 
-                                    for (var _iterator23 = seats[Symbol.iterator](), _step23; !(_iteratorNormalCompletion23 = (_step23 = _iterator23.next()).done); _iteratorNormalCompletion23 = true) {
-                                        var i = _step23.value;
+                                        for (var _iterator25 = seats[Symbol.iterator](), _step25; !(_iteratorNormalCompletion25 = (_step25 = _iterator25.next()).done); _iteratorNormalCompletion25 = true) {
+                                            var i = _step25.value;
 
-                                        if (i.col === serial.col && i.num === serial.num) {
-                                            i.serialNum = serial.serialNum;
+                                            if (i.col === serial.col && i.num === serial.num) {
+                                                i.serialNum = serial.serialNum;
+                                            }
+                                        }
+                                    } catch (err) {
+                                        _didIteratorError25 = true;
+                                        _iteratorError25 = err;
+                                    } finally {
+                                        try {
+                                            if (!_iteratorNormalCompletion25 && _iterator25.return) {
+                                                _iterator25.return();
+                                            }
+                                        } finally {
+                                            if (_didIteratorError25) {
+                                                throw _iteratorError25;
+                                            }
                                         }
                                     }
-                                } catch (err) {
-                                    _didIteratorError23 = true;
-                                    _iteratorError23 = err;
+                                }
+                            } catch (err) {
+                                _didIteratorError24 = true;
+                                _iteratorError24 = err;
+                            } finally {
+                                try {
+                                    if (!_iteratorNormalCompletion24 && _iterator24.return) {
+                                        _iterator24.return();
+                                    }
                                 } finally {
-                                    try {
-                                        if (!_iteratorNormalCompletion23 && _iterator23.return) {
-                                            _iterator23.return();
-                                        }
-                                    } finally {
-                                        if (_didIteratorError23) {
-                                            throw _iteratorError23;
-                                        }
+                                    if (_didIteratorError24) {
+                                        throw _iteratorError24;
                                     }
                                 }
                             }
-                        } catch (err) {
-                            _didIteratorError22 = true;
-                            _iteratorError22 = err;
-                        } finally {
+                        }
+                        console.log(reserved_seats);
+                        if (reserved_seats && reserved_seats.length) {
+                            var _serialSeats = res.data[0].seats;
+
+                            var _iteratorNormalCompletion26 = true;
+                            var _didIteratorError26 = false;
+                            var _iteratorError26 = undefined;
+
                             try {
-                                if (!_iteratorNormalCompletion22 && _iterator22.return) {
-                                    _iterator22.return();
+                                for (var _iterator26 = _serialSeats[Symbol.iterator](), _step26; !(_iteratorNormalCompletion26 = (_step26 = _iterator26.next()).done); _iteratorNormalCompletion26 = true) {
+                                    var _serial = _step26.value;
+                                    var _iteratorNormalCompletion27 = true;
+                                    var _didIteratorError27 = false;
+                                    var _iteratorError27 = undefined;
+
+                                    try {
+
+                                        for (var _iterator27 = reserved_seats[Symbol.iterator](), _step27; !(_iteratorNormalCompletion27 = (_step27 = _iterator27.next()).done); _iteratorNormalCompletion27 = true) {
+                                            var _i = _step27.value;
+
+                                            if (_i.col === _serial.col && _i.num === _serial.num) {
+                                                _i.serialNum = _serial.serialNum;
+                                            }
+                                        }
+                                    } catch (err) {
+                                        _didIteratorError27 = true;
+                                        _iteratorError27 = err;
+                                    } finally {
+                                        try {
+                                            if (!_iteratorNormalCompletion27 && _iterator27.return) {
+                                                _iterator27.return();
+                                            }
+                                        } finally {
+                                            if (_didIteratorError27) {
+                                                throw _iteratorError27;
+                                            }
+                                        }
+                                    }
                                 }
+                            } catch (err) {
+                                _didIteratorError26 = true;
+                                _iteratorError26 = err;
                             } finally {
-                                if (_didIteratorError22) {
-                                    throw _iteratorError22;
+                                try {
+                                    if (!_iteratorNormalCompletion26 && _iterator26.return) {
+                                        _iterator26.return();
+                                    }
+                                } finally {
+                                    if (_didIteratorError26) {
+                                        throw _iteratorError26;
+                                    }
                                 }
                             }
                         }
                     }
-
                     _this12.setState({
                         loaded: true,
                         time_picked: time,
                         seats: seats,
-                        reserved_seats: res.data.reserved_seats,
+                        reserved_seats: reserved_seats,
                         seats_picked: [],
                         price_picked: null,
                         customers: [],
@@ -47375,22 +47494,22 @@ var Main = function (_React$Component) {
 
             if (Array.isArray(seats)) {
                 var seats_cleaned = [];
-                var _iteratorNormalCompletion24 = true;
-                var _didIteratorError24 = false;
-                var _iteratorError24 = undefined;
+                var _iteratorNormalCompletion28 = true;
+                var _didIteratorError28 = false;
+                var _iteratorError28 = undefined;
 
                 try {
-                    for (var _iterator24 = seats[Symbol.iterator](), _step24; !(_iteratorNormalCompletion24 = (_step24 = _iterator24.next()).done); _iteratorNormalCompletion24 = true) {
-                        var s = _step24.value;
+                    for (var _iterator28 = seats[Symbol.iterator](), _step28; !(_iteratorNormalCompletion28 = (_step28 = _iterator28.next()).done); _iteratorNormalCompletion28 = true) {
+                        var s = _step28.value;
 
                         var temp = true;
-                        var _iteratorNormalCompletion26 = true;
-                        var _didIteratorError26 = false;
-                        var _iteratorError26 = undefined;
+                        var _iteratorNormalCompletion30 = true;
+                        var _didIteratorError30 = false;
+                        var _iteratorError30 = undefined;
 
                         try {
-                            for (var _iterator26 = seats_picked[Symbol.iterator](), _step26; !(_iteratorNormalCompletion26 = (_step26 = _iterator26.next()).done); _iteratorNormalCompletion26 = true) {
-                                var s2 = _step26.value;
+                            for (var _iterator30 = seats_picked[Symbol.iterator](), _step30; !(_iteratorNormalCompletion30 = (_step30 = _iterator30.next()).done); _iteratorNormalCompletion30 = true) {
+                                var s2 = _step30.value;
 
                                 if (s.floor === s2.floor && s.col === s2.col && s.num === s2.num) {
                                     temp = false;
@@ -47398,16 +47517,16 @@ var Main = function (_React$Component) {
                                 }
                             }
                         } catch (err) {
-                            _didIteratorError26 = true;
-                            _iteratorError26 = err;
+                            _didIteratorError30 = true;
+                            _iteratorError30 = err;
                         } finally {
                             try {
-                                if (!_iteratorNormalCompletion26 && _iterator26.return) {
-                                    _iterator26.return();
+                                if (!_iteratorNormalCompletion30 && _iterator30.return) {
+                                    _iterator30.return();
                                 }
                             } finally {
-                                if (_didIteratorError26) {
-                                    throw _iteratorError26;
+                                if (_didIteratorError30) {
+                                    throw _iteratorError30;
                                 }
                             }
                         }
@@ -47415,41 +47534,41 @@ var Main = function (_React$Component) {
                         if (temp === true) seats_cleaned.push(s);
                     }
                 } catch (err) {
-                    _didIteratorError24 = true;
-                    _iteratorError24 = err;
+                    _didIteratorError28 = true;
+                    _iteratorError28 = err;
                 } finally {
                     try {
-                        if (!_iteratorNormalCompletion24 && _iterator24.return) {
-                            _iterator24.return();
+                        if (!_iteratorNormalCompletion28 && _iterator28.return) {
+                            _iterator28.return();
                         }
                     } finally {
-                        if (_didIteratorError24) {
-                            throw _iteratorError24;
+                        if (_didIteratorError28) {
+                            throw _iteratorError28;
                         }
                     }
                 }
 
-                var _iteratorNormalCompletion25 = true;
-                var _didIteratorError25 = false;
-                var _iteratorError25 = undefined;
+                var _iteratorNormalCompletion29 = true;
+                var _didIteratorError29 = false;
+                var _iteratorError29 = undefined;
 
                 try {
-                    for (var _iterator25 = seats_cleaned[Symbol.iterator](), _step25; !(_iteratorNormalCompletion25 = (_step25 = _iterator25.next()).done); _iteratorNormalCompletion25 = true) {
-                        var i = _step25.value;
+                    for (var _iterator29 = seats_cleaned[Symbol.iterator](), _step29; !(_iteratorNormalCompletion29 = (_step29 = _iterator29.next()).done); _iteratorNormalCompletion29 = true) {
+                        var i = _step29.value;
 
                         seats_picked.push(i);
                     }
                 } catch (err) {
-                    _didIteratorError25 = true;
-                    _iteratorError25 = err;
+                    _didIteratorError29 = true;
+                    _iteratorError29 = err;
                 } finally {
                     try {
-                        if (!_iteratorNormalCompletion25 && _iterator25.return) {
-                            _iterator25.return();
+                        if (!_iteratorNormalCompletion29 && _iterator29.return) {
+                            _iterator29.return();
                         }
                     } finally {
-                        if (_didIteratorError25) {
-                            throw _iteratorError25;
+                        if (_didIteratorError29) {
+                            throw _iteratorError29;
                         }
                     }
                 }
@@ -47485,27 +47604,27 @@ var Main = function (_React$Component) {
                 //옮겨야해
                 var numOfVIP = 0;
                 var numOfR = 0;
-                var _iteratorNormalCompletion27 = true;
-                var _didIteratorError27 = false;
-                var _iteratorError27 = undefined;
+                var _iteratorNormalCompletion31 = true;
+                var _didIteratorError31 = false;
+                var _iteratorError31 = undefined;
 
                 try {
-                    for (var _iterator27 = this.state.seats_picked[Symbol.iterator](), _step27; !(_iteratorNormalCompletion27 = (_step27 = _iterator27.next()).done); _iteratorNormalCompletion27 = true) {
-                        var _s = _step27.value;
+                    for (var _iterator31 = this.state.seats_picked[Symbol.iterator](), _step31; !(_iteratorNormalCompletion31 = (_step31 = _iterator31.next()).done); _iteratorNormalCompletion31 = true) {
+                        var _s = _step31.value;
 
                         if (_s.seat_class === "VIP") numOfVIP++;else if (_s.seat_class === "R") numOfR++;
                     }
                 } catch (err) {
-                    _didIteratorError27 = true;
-                    _iteratorError27 = err;
+                    _didIteratorError31 = true;
+                    _iteratorError31 = err;
                 } finally {
                     try {
-                        if (!_iteratorNormalCompletion27 && _iterator27.return) {
-                            _iterator27.return();
+                        if (!_iteratorNormalCompletion31 && _iterator31.return) {
+                            _iterator31.return();
                         }
                     } finally {
-                        if (_didIteratorError27) {
-                            throw _iteratorError27;
+                        if (_didIteratorError31) {
+                            throw _iteratorError31;
                         }
                     }
                 }
@@ -47513,29 +47632,29 @@ var Main = function (_React$Component) {
                 if (this.state.customers_picked && this.state.customers_picked.length) {
                     var numOfVIP_customers = 0;
                     var numOfR_customers = 0;
-                    var _iteratorNormalCompletion28 = true;
-                    var _didIteratorError28 = false;
-                    var _iteratorError28 = undefined;
+                    var _iteratorNormalCompletion32 = true;
+                    var _didIteratorError32 = false;
+                    var _iteratorError32 = undefined;
 
                     try {
-                        for (var _iterator28 = this.state.customers_picked[Symbol.iterator](), _step28; !(_iteratorNormalCompletion28 = (_step28 = _iterator28.next()).done); _iteratorNormalCompletion28 = true) {
-                            var s = _step28.value;
+                        for (var _iterator32 = this.state.customers_picked[Symbol.iterator](), _step32; !(_iteratorNormalCompletion32 = (_step32 = _iterator32.next()).done); _iteratorNormalCompletion32 = true) {
+                            var s = _step32.value;
 
                             if (!s.seat_position) {
                                 if (s.seat_class === "VIP") numOfVIP_customers++;else if (s.seat_class === "R") numOfR_customers++;
                             }
                         }
                     } catch (err) {
-                        _didIteratorError28 = true;
-                        _iteratorError28 = err;
+                        _didIteratorError32 = true;
+                        _iteratorError32 = err;
                     } finally {
                         try {
-                            if (!_iteratorNormalCompletion28 && _iterator28.return) {
-                                _iterator28.return();
+                            if (!_iteratorNormalCompletion32 && _iterator32.return) {
+                                _iterator32.return();
                             }
                         } finally {
-                            if (_didIteratorError28) {
-                                throw _iteratorError28;
+                            if (_didIteratorError32) {
+                                throw _iteratorError32;
                             }
                         }
                     }
@@ -47563,13 +47682,13 @@ var Main = function (_React$Component) {
         key: 'ticketExcel',
         value: function ticketExcel(source, price) {
             var data = [];
-            var _iteratorNormalCompletion29 = true;
-            var _didIteratorError29 = false;
-            var _iteratorError29 = undefined;
+            var _iteratorNormalCompletion33 = true;
+            var _didIteratorError33 = false;
+            var _iteratorError33 = undefined;
 
             try {
-                for (var _iterator29 = this.state.seats_picked[Symbol.iterator](), _step29; !(_iteratorNormalCompletion29 = (_step29 = _iterator29.next()).done); _iteratorNormalCompletion29 = true) {
-                    var p = _step29.value;
+                for (var _iterator33 = this.state.seats_picked[Symbol.iterator](), _step33; !(_iteratorNormalCompletion33 = (_step33 = _iterator33.next()).done); _iteratorNormalCompletion33 = true) {
+                    var p = _step33.value;
 
                     var reservation = {
                         source: source,
@@ -47585,16 +47704,16 @@ var Main = function (_React$Component) {
                     data.push(reservation);
                 }
             } catch (err) {
-                _didIteratorError29 = true;
-                _iteratorError29 = err;
+                _didIteratorError33 = true;
+                _iteratorError33 = err;
             } finally {
                 try {
-                    if (!_iteratorNormalCompletion29 && _iterator29.return) {
-                        _iterator29.return();
+                    if (!_iteratorNormalCompletion33 && _iterator33.return) {
+                        _iterator33.return();
                     }
                 } finally {
-                    if (_didIteratorError29) {
-                        throw _iteratorError29;
+                    if (_didIteratorError33) {
+                        throw _iteratorError33;
                     }
                 }
             }
@@ -47657,31 +47776,31 @@ var Main = function (_React$Component) {
         key: 'tickettingCenter',
         value: function tickettingCenter(cb) {
             var combine = false;
-            if (this.state.autoCombine && this.state.seats_picked.length <= 10) {
+            if (this.state.seats_picked.length > 0 && this.state.autoCombine && this.state.seats_picked.length <= 10) {
                 combine = true;
                 var firstSeatClass = this.state.seats_picked[0].seat_class;
                 var firstSeatPrice = this.state.seats_picked[0].price;
-                var _iteratorNormalCompletion30 = true;
-                var _didIteratorError30 = false;
-                var _iteratorError30 = undefined;
+                var _iteratorNormalCompletion34 = true;
+                var _didIteratorError34 = false;
+                var _iteratorError34 = undefined;
 
                 try {
-                    for (var _iterator30 = this.state.seats_picked[Symbol.iterator](), _step30; !(_iteratorNormalCompletion30 = (_step30 = _iterator30.next()).done); _iteratorNormalCompletion30 = true) {
-                        var seat = _step30.value;
+                    for (var _iterator34 = this.state.seats_picked[Symbol.iterator](), _step34; !(_iteratorNormalCompletion34 = (_step34 = _iterator34.next()).done); _iteratorNormalCompletion34 = true) {
+                        var seat = _step34.value;
 
                         if (seat.seat_class !== firstSeatClass || seat.price !== firstSeatPrice) combine = false;
                     }
                 } catch (err) {
-                    _didIteratorError30 = true;
-                    _iteratorError30 = err;
+                    _didIteratorError34 = true;
+                    _iteratorError34 = err;
                 } finally {
                     try {
-                        if (!_iteratorNormalCompletion30 && _iterator30.return) {
-                            _iterator30.return();
+                        if (!_iteratorNormalCompletion34 && _iterator34.return) {
+                            _iterator34.return();
                         }
                     } finally {
-                        if (_didIteratorError30) {
-                            throw _iteratorError30;
+                        if (_didIteratorError34) {
+                            throw _iteratorError34;
                         }
                     }
                 }

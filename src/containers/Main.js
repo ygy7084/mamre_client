@@ -947,10 +947,36 @@ class Main extends React.Component {
                         if (input === r.customer_name && !r.printed)
                             customers.push(r);
                     }
-                this.setState({
-                    customers:customers,
-                    LoaderModal_on:false,
-                    CustomerFindingModal_on:true});
+
+
+                fetch('/api/seatsSerial/'+this.state.time_picked, {method:'GET'})
+                    .then(res => {
+                        if(res.ok)
+                            return res.json();
+                        else
+                            return res.json().then(err => { throw err; })})
+
+                    .then(res => {
+
+                        if (res.data && res.data[0] && res.data.length) {
+                            const serialSeats = res.data[0].seats;
+
+                            for (let serial of serialSeats) {
+
+                                for (let i of customers) {
+                                    if (i.seat_position.col === serial.col && i.seat_position.num === serial.num) {
+                                        i.serialNum = serial.serialNum;
+                                    }
+                                }
+                            }
+                        }
+
+                        this.setState({
+                            customers: customers,
+                            LoaderModal_on: false,
+                            CustomerFindingModal_on: true
+                        });
+                    })
             })
             .catch((err) => {
                 let message = err;
@@ -1125,6 +1151,8 @@ class Main extends React.Component {
                     else
                         seats = res.data.not_reserved_seats;
 
+                    let reserved_seats = res.data.reserved_seats;
+
                     fetch('/api/seatsSerial/'+time, {method:'GET'})
                         .then(res => {
                             if(res.ok)
@@ -1135,11 +1163,11 @@ class Main extends React.Component {
                         .then(res => {
                             console.log(res.data[0]);
 
+                            if(res.data && res.data[0]) {
+                                if (res.data && res.data.length) {
+                                    const serialSeats = res.data[0].seats;
 
-                            if(res.data && res.data.length) {
-                                const serialSeats = res.data[0].seats;
-
-                                for(let serial of serialSeats) {
+                                    for (let serial of serialSeats) {
 
                                         for (let i of seats) {
                                             if (i.col === serial.col && i.num === serial.num) {
@@ -1149,12 +1177,26 @@ class Main extends React.Component {
                                     }
 
                                 }
+                                console.log(reserved_seats);
+                                if (reserved_seats && reserved_seats.length) {
+                                    const serialSeats = res.data[0].seats;
 
+                                    for (let serial of serialSeats) {
+
+                                        for (let i of reserved_seats) {
+                                            if (i.col === serial.col && i.num === serial.num) {
+                                                i.serialNum = serial.serialNum;
+                                            }
+                                        }
+                                    }
+
+                                }
+                            }
                             this.setState({
                                 loaded:true,
                                 time_picked:time,
                                 seats:seats,
-                                reserved_seats : res.data.reserved_seats,
+                                reserved_seats : reserved_seats,
                                 seats_picked:[],
                                 price_picked: null,
                                 customers: [],
@@ -1332,7 +1374,7 @@ class Main extends React.Component {
     }
     tickettingCenter(cb) {
         let combine = false;
-        if(this.state.autoCombine && this.state.seats_picked.length<=10) {
+        if(this.state.seats_picked.length>0 && this.state.autoCombine && this.state.seats_picked.length<=10) {
             combine = true;
             const firstSeatClass = this.state.seats_picked[0].seat_class;
             const firstSeatPrice = this.state.seats_picked[0].price;

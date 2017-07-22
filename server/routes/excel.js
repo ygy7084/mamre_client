@@ -699,20 +699,22 @@ router.get('/showtime/:showtime/date/:date', (req, res) => {
                             {$set:{seats : result_infoForSeatsSerial}},
                             {upsert:true}
                         ).exec((err, results) => {
-                            console.log(results);
+
+                            const ws = XLSX.utils.aoa_to_sheet(ws_data.concat(result_seat));
+
+                            wb.SheetNames.push(ws_name);
+
+                            wb.Sheets[ws_name] = ws;
+
+                            tmp.file(function _tempFileCreated(err, path, fd, cleanupCallback) {
+                                if (err) throw err;
+                                XLSX.writeFile(wb, path);
+                                return res.download(path, 'reservations.xlsx');
+                            });
+
                         });
 
-                        const ws = XLSX.utils.aoa_to_sheet(ws_data.concat(result_seat));
 
-                        wb.SheetNames.push(ws_name);
-
-                        wb.Sheets[ws_name] = ws;
-
-                        tmp.file(function _tempFileCreated(err, path, fd, cleanupCallback) {
-                            if (err) throw err;
-                            XLSX.writeFile(wb, path);
-                            return res.download(path, 'reservations.xlsx');
-                        });
                 });
             });
         });
