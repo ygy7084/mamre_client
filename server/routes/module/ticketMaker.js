@@ -1,3 +1,7 @@
+/*
+PDF를 생성한다.
+ */
+
 import path from 'path';
 import hummus from 'hummus';
 import tmp from 'tmp';
@@ -8,6 +12,9 @@ const ticketMaker = (info) => {
     //req.body.combine -> info.combine
     return new Promise(
         (resolve, reject) => {
+            /*
+            PDF 전송 이전 임시 파일 생성
+             */
             tmp.file((err, filepath)=>{
                 if (err) throw err;
 
@@ -16,12 +23,20 @@ const ticketMaker = (info) => {
             });
         })
         .then((PDF) => {
+        /*
+        티켓 기본 PDF는
+        public/tickets.pdf 를 사용한다.
+         */
             let pdfWriter = hummus.createWriter(PDF);
             let copyingContext = pdfWriter.createPDFCopyingContext(path.join(__dirname, '../../../public', '/tickets.pdf'));
 
             for(let i=0;i<info.data.length;i++) {
                 let seat = info.data[i];
 
+                /*
+                R이면 PDF의 첫번째 페이지를 사용하고
+                VIP이면 PDF의 두번째 페이지를 사용한다.
+                 */
                 if (seat.seat_class === 'R')
                     copyingContext.appendPDFPageFromPDF(0);
                 else if (seat.seat_class === 'VIP')
@@ -37,6 +52,9 @@ const ticketMaker = (info) => {
             return PDF;
         })
         .then((PDF) => {
+        /*
+        PDF에 그린다.
+         */
 
             let pdfWriter = hummus.createWriterToModify(PDF);
             let data;
@@ -48,6 +66,14 @@ const ticketMaker = (info) => {
                     data = [info.data[i]];
 
                 let axis = {
+                    /*
+                    가변되는 좌표들은 이곳에서 관리하며
+                    '석', '소월아트홀'처럼 위치가 고정된 좌표는 밑의 그리는 코드에 코딩되어있다.
+                    x : 왼쪽부터 0
+                    y : 밑에부터 0
+                    즉, x:0 y:0 은 좌하단 끝점을 의미한다.
+                    size는 font 크기이다.
+                     */
                     seat_class: {x: 270, y: 230, size: 15},
                     date: {x: 312, y: 210, size: 15},
                     time: {x: 320, y: 198, size: 11},
@@ -85,6 +111,9 @@ const ticketMaker = (info) => {
                         num: seat.seat_position.num
                     })
 
+                /*
+                글자 수에 따라 X좌표를 바꿔줌으로써 글자가 좌우로 균형이 맞도록 한다.
+                 */
                 if (seats.seat_class === 'VIP')
                     axis.seat_class.x = 263;
                 if (seats.date.length === 5)
@@ -98,12 +127,18 @@ const ticketMaker = (info) => {
                     axis.time.x = 315;
                 }
 
+                /*
+                좌석이 5개 초과인지 아닌지에 따라 y좌표를 변경한다.
+                 */
                 if (seats.seats_picked.length < 6) {
                     axis.leftBase.y -= (axis.leftBase.size + 2);
                     axis.rightBase.y -= (axis.rightBase.size + 2);
                 }
 
 
+                /*
+                폰트
+                 */
                 let fontSRC = path.join(__dirname, '../../../public', '/malgunbd.ttf');
                 let font;
                 font = pdfWriter.getFontForFile(fontSRC);

@@ -1,23 +1,12 @@
 import express from 'express';
-import {Showtime, Reservation, Theater} from '../models';
+import {Showtime, Reservation} from '../models';
 
 const router = express.Router();
 
-router.post('/available', (req, res) => {
-    const input = {
-        showtime : req.body.showtime,
-        date : req.body.date,
-        seats : req.body.seats
-    };
-
-});
 router.get('/pre/showtime/:showtime/date/:date', (req, res) => {
     const input = {
         showtime: req.params.showtime,
         date: new Date(parseInt(req.params.date))
-    };
-    const wrapper = {
-        data : input
     };
     Showtime.find({_id:input.showtime})
         .populate('theater')
@@ -122,7 +111,6 @@ router.get('/showtime/:showtime/date/:date', (req, res) => {
                         }
                     });
 
-                    const crawled_seats = response.data;
 
                     //difference 연산
                     let reserved_seats;
@@ -131,13 +119,18 @@ router.get('/showtime/:showtime/date/:date', (req, res) => {
                     
                     reserved_seats = [];
                     /*
-                    인터파크 크롤링 예약데이터로 전환안함
+
+                    본 주석 코드를 사용하면 크롤링 데이터가 들어간다.
+
                      */
+
+                    // const crawled_seats = response.data;
                     // reserved_seats = theater_seats.filter((ts) => {
                     //     return crawled_seats.filter((cs) => {
                     //             return ts.col===cs.col && ts.floor === cs.floor && ts.num === cs.num
                     //         }).length===0;
                     // });
+
                     for(let es of excel_seats) {
                         if(!reserved_seats.find((rs) => {
                             return es.col===rs.col && es.floor===rs.floor && es.num===rs.num;

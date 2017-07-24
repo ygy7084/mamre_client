@@ -18,7 +18,9 @@ import mongoose from 'mongoose';
  ticket_price,        //티켓 가격
  theater,             //공연장 참조
  show,                 //공연 참조
- printed               //발권 유무
+ printed               //발권 유무,
+ dilievered,           //할당 유무
+ discount              //할인내역
  */
 const Schema = mongoose.Schema;
 const Reservation = new Schema({

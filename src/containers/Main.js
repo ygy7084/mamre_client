@@ -196,7 +196,6 @@ class Main extends React.Component {
         if(this.state.reTickettingStart)
             this.reTickettingStart(false);
     }
-
     //완성
     groupTicketting(group_name, price, combine) {
         if(this.state.reTickettingStart || this.state.preTickettingStart)
@@ -738,79 +737,10 @@ class Main extends React.Component {
                 });
             });
     }
-
-    // preTicketting(source, group_name, price) {
-    //     let data = [];
-    //         for(let p of this.state.seats_picked) {
-    //         let reservation = {
-    //             input_date: new Date(),
-    //             source : source,
-    //             group_name: group_name ? group_name : undefined,
-    //             customer_name:  null,
-    //             customer_phone: null,
-    //             show_date: this.state.time_picked,
-    //             seat_class: p.seat_class,
-    //             seat_position: {
-    //                 floor : p.floor,
-    //                 col : p.col,
-    //                 num : p.num
-    //             },
-    //             ticket_quantity: 1,
-    //             ticket_price: price ? parseInt(price) : parseInt(p.price),
-    //             theater: this.state.theater._id,
-    //             show: this.state.show._id
-    //         };
-    //         data.push(reservation);
-    //     }
-    //     this.setState({
-    //         LoaderModal_on:true,
-    //         LoaderModal_title:'발권 중'
-    //     });
-    //     let wrapper = {
-    //         data : data
-    //     };
-    //     return fetch('/api/reservation/createMany',{
-    //         method : 'POST',
-    //         headers : {'Content-Type' : 'application/json'},
-    //         body : JSON.stringify(wrapper)
-    //     })
-    //         .then(res =>{
-    //             if(res.ok)
-    //                 return res.json();
-    //             else
-    //                 return res.json().then(err => { throw err; })})
-    //         .then(res => {
-    //             //
-    //             let wrapper = {
-    //                 data : data,
-    //                 combine :false
-    //             };
-    //             // fetch('http://localhost:8081/ticket', {
-    //             //     method:'POST',
-    //             //     headers:{'Content-Type':'application/json'},
-    //             //     body:JSON.stringify(wrapper)
-    //             // })
-    //             //     .then((res) => res.json())
-    //             //     .then((res)=>{
-    //             //         this.loadSeats(this.state.time_picked);
-    //             // });
-    //             //
-    //             this.loadSeats(this.state.time_picked);
-    //         })
-    //         .catch((err) => {
-    //             let message = err;
-    //             if(err.message && err.message!=='')
-    //                 message = err.message;
-    //
-    //             console.log(message);
-    //
-    //         });
-    // }
     preTickettingWithoutSeats(customers_picked) {
         if(!customers_picked)
             return null;
         else {
-            // let customers_picked = JSON.parse(JSON.stringify(customers_picked));
             let data = [];
 
             for(let customer of customers_picked) {
@@ -963,9 +893,11 @@ class Main extends React.Component {
 
                             for (let serial of serialSeats) {
 
-                                for (let i of customers) {
-                                    if (i.seat_position.col === serial.col && i.seat_position.num === serial.num) {
-                                        i.serialNum = serial.serialNum;
+                                for (let i of customers){
+                                    if(i.seat_position && i.seat_position.col&&i.seat_position.num) {
+                                        if (i.seat_position.col === serial.col && i.seat_position.num === serial.num) {
+                                            i.serialNum = serial.serialNum;
+                                        }
                                     }
                                 }
                             }
@@ -1088,7 +1020,6 @@ class Main extends React.Component {
         this.loadSeats(this.state.time_picked);
     }
     loadSeats(time, pre) {
-
         this.setState({
             LoaderModal_on:true,
             LoaderModal_title:new Date(time).toLocaleString()
@@ -1425,7 +1356,6 @@ class Main extends React.Component {
                 console.log(message);
             });
     }
-
     render() {
         return (
             <div>

@@ -570,32 +570,36 @@ router.get('/showtime/:showtime/date/:date', (req, res) => {
                     else
                         return response.json().then(err => { throw err; })})
                 .then(response => {
-                    const crawled_seats = response.data;
 
-                    const reserved_seats = theater_seats.filter((ts) => {
-                        return crawled_seats.filter((cs) => {
-                                return ts.col===cs.col && ts.floor === cs.floor && ts.num === cs.num
-                            }).length===0;
-                    });
+                    /*
 
-                    for(let c of reserved_seats) {
-                        let obj = Arr.find((item) => {
-                            if (
-                                item.seat_position.col === c.col &&
-                                item.seat_position.num === c.num
-                            )
-                                return true;
-                        });
-                        /*
-                        엑셀에 크롤링 기본 입력
-                         */
-                        // if(obj) {
-                        //     obj.source = '인터파크';
-                        //     obj.customer_name = '미확인';
-                        //     obj.customer_phone = '미확인';
-                        // }
+                    본 주석 코드를 사용하면
+                    크롤링 된 내역들이 '인터파크' , '미확인' 으로 기본적으로 들어간다.
 
-                    }
+                     */
+                    // const crawled_seats = response.data;
+                    //
+                    // const reserved_seats = theater_seats.filter((ts) => {
+                    //     return crawled_seats.filter((cs) => {
+                    //             return ts.col===cs.col && ts.floor === cs.floor && ts.num === cs.num
+                    //         }).length===0;
+                    // });
+                    // for(let c of reserved_seats) {
+                    //     let obj = Arr.find((item) => {
+                    //         if (
+                    //             item.seat_position.col === c.col &&
+                    //             item.seat_position.num === c.num
+                    //         )
+                    //             return true;
+                    //     });
+                    //     if(obj) {
+                    //         obj.source = '인터파크';
+                    //         obj.customer_name = '미확인';
+                    //         obj.customer_phone = '미확인';
+                    //     }
+                    //
+                    // }
+
 
                     Reservation.populate(schedule.reservations, {path: '_id'}, (err, results) => {
                         results.forEach((r) => {

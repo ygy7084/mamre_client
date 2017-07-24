@@ -47074,8 +47074,10 @@ var Main = function (_React$Component) {
                                     for (var _iterator20 = customers[Symbol.iterator](), _step20; !(_iteratorNormalCompletion20 = (_step20 = _iterator20.next()).done); _iteratorNormalCompletion20 = true) {
                                         var i = _step20.value;
 
-                                        if (i.seat_position.col === serial.col && i.seat_position.num === serial.num) {
-                                            i.serialNum = serial.serialNum;
+                                        if (i.seat_position && i.seat_position.col && i.seat_position.num) {
+                                            if (i.seat_position.col === serial.col && i.seat_position.num === serial.num) {
+                                                i.serialNum = serial.serialNum;
+                                            }
                                         }
                                     }
                                 } catch (err) {

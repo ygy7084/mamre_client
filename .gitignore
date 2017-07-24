@@ -4,3 +4,6 @@ build/
 test/
 app.yaml
 mongo/
+config_temp.json
+.gitignore
+public/bundle.js
