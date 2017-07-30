@@ -11,6 +11,7 @@ module.exports = {
         'react-dom',
         './index.js',
     ],
+
     output : {
         path: resolve(__dirname, 'public'),
         filename: 'bundle.js',

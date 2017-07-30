@@ -4,7 +4,6 @@ import {
     PointSavingModal
 } from '../components';
 
-import configure from '../../server';
 
 class Customer extends React.Component {
     constructor(props) {
@@ -19,10 +18,9 @@ class Customer extends React.Component {
         this.inputReset    = this.inputReset.bind(this);
     }
     postAddSaving(){
-        const API = configure.API_SERVER+':'+configure.API_SERVER_PORT;
         if(this.state.inputNumber==='번호를 입력하십시요.')
             return null;
-        fetch('http://'+API+'/api/member/'+this.state.inputNumber+'/addpoint')
+        fetch('http://220.230.112.62:3000/api/member/'+this.state.inputNumber+'/addpoint')
             .then(res => res.json())
             .then((data) => {
                 this.setState({
@@ -37,7 +35,7 @@ class Customer extends React.Component {
                 },3000);
             })
             .catch((err) => {
-                fetch('http://'+API+'/member/add/',
+                fetch('http://220.230.112.62:3000/member/add/',
                     {
                         method : 'POST',
                         headers : {'Content-Type' : 'application/x-www-form-urlencoded'},

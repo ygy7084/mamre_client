@@ -15910,7 +15910,7 @@ var Customer = function (_React$Component) {
             var _this2 = this;
 
             if (this.state.inputNumber === '번호를 입력하십시요.') return null;
-            fetch('http://211.53.57.145:3000/api/member/' + this.state.inputNumber + '/addpoint').then(function (res) {
+            fetch('http://220.230.112.62:3000/api/member/' + this.state.inputNumber + '/addpoint').then(function (res) {
                 return res.json();
             }).then(function (data) {
                 _this2.setState({
@@ -15924,7 +15924,7 @@ var Customer = function (_React$Component) {
                     });
                 }, 3000);
             }).catch(function (err) {
-                fetch('http://211.53.57.145:3000/member/add/', {
+                fetch('http://220.230.112.62:3000/member/add/', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                     body: JSON.stringify({ phone: _this2.state.inputNumber })
