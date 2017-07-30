@@ -16,15 +16,10 @@ var _configure = require('./configure');
 
 var _configure2 = _interopRequireDefault(_configure);
 
-require('isomorphic-fetch');
-
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 //서버와 포트 초기화
 var app = (0, _express2.default)();
-
-//서버사이드 ajax를 위한 fetch
-
 var port = _configure2.default.PORT;
 
 //POST 연결을 위한 설정

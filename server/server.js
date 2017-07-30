@@ -6,8 +6,6 @@ import path from 'path';
 
 import configure from './configure';
 
-//서버사이드 ajax를 위한 fetch
-import 'isomorphic-fetch';
 
 //서버와 포트 초기화
 const app = express();
