@@ -10,7 +10,7 @@ module.exports = {
         'react',
         'react-dom',
         './index.js',
-        './style.css'],
+    ],
     output : {
         path: resolve(__dirname, 'public'),
         filename: 'bundle.js',

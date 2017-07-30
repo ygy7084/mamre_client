@@ -1,5 +1,4 @@
 import React from 'react';
-import Radium from 'radium';
 
 import {
     Link
@@ -10,8 +9,8 @@ class Entry extends React.Component {
         return (
             <div className='container' style={style.vertical_center}>
                 <div style={style.horizontal_center}>
-                    <Link className='btn btn-primary btn-lg btn-block' to='/main'>발권</Link>
-                    <Link className='btn btn-default btn-lg btn-block' to='/setting'>관리자</Link>
+                    <Link className='btn btn-primary btn-lg btn-block' to='/customer'>고객 사용 페이지</Link>
+                    <Link className='btn btn-default btn-lg btn-block' to='/manager'>관리자 페이지</Link>
                 </div>
             </div>
         )
@@ -30,4 +29,4 @@ const style = {
     }
 };
 
-export default Radium(Entry);
+export default Entry;
