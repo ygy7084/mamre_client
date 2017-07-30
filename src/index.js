@@ -6,7 +6,6 @@
 
 import es6_promise from 'es6-promise';
 es6_promise.polyfill();
-import 'isomorphic-fetch';
 
 import React from 'react';
 import ReactDOM from 'react-dom';
